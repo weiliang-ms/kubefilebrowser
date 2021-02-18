@@ -2,6 +2,19 @@
 
 网页版kubectl cp
 
+## 启动可选环境变量
+
+| 名称 | 类型 | 默认值 |
+| ---- | ---- | ---- |
+| RUN_MODE | string | default:"debug" |
+| HTTP_PORT | string | default:"9999" |
+| HTTP_ADDR | string | default:"0.0.0.0" |
+| LOG_LEVEL | string | default:"debug" |
+| IP_WHITE_LIST | []string | default:"*" |
+| DOWNLOAD_TMP | string | default:"tmp" |
+| KUBECONFIG | string | default:"~/.kube/config" |
+
+
 ## debug模式启动日志
 
 ```text
