@@ -7,7 +7,7 @@ if [ "$?" != "0" ]; then
   exit 1
 fi
 name="kubecp"
-version="1.0-bate"
+version="v1.0-beta"
 osList="linux windows darwin"
 # shellcheck disable=SC2181
 for i in $osList; do
