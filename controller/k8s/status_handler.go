@@ -100,7 +100,7 @@ func PodStatus(c *gin.Context) {
 	var dWg sync.WaitGroup
 	for _, d := range deployments {
 		dWg.Add(1)
-		deployment := &d
+		deployment := d
 		go func(wg *sync.WaitGroup, deployment *appsV1.Deployment) {
 			defer dWg.Done()
 			rsList, err := deploymentutil.ListReplicaSets(deployment, deploymentutil.RsListFromClient(config.RestClient.AppsV1()))
@@ -117,7 +117,7 @@ func PodStatus(c *gin.Context) {
 				return
 			}
 			podList = append(podList, pods.Items...)
-		}(&dWg, deployment)
+		}(&dWg, &deployment)
 	}
 	dWg.Wait()
 
