@@ -6,7 +6,7 @@ if [ "$?" != "0" ]; then
   echo "!!!!!!Swagger documentation generate error, please check the source code!!!!!!"
   exit 1
 fi
-BinaryName="kubecp"
+name="kubecp"
 version="1.0-bate"
 osList="linux windows darwin"
 # shellcheck disable=SC2181
