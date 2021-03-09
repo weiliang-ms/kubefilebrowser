@@ -3,8 +3,8 @@ package execer
 import (
 	"io"
 	coreV1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 )
@@ -38,21 +38,15 @@ func (e *execer) Exec() error {
 		Resource("pods").
 		Name(e.PodName).
 		Namespace(e.Namespace).
-		SubResource("exec")
-	scheme := runtime.NewScheme()
-	if err := coreV1.AddToScheme(scheme); err != nil {
-		return err
-	}
-
-	parameterCodec := runtime.NewParameterCodec(scheme)
-	req.VersionedParams(&coreV1.PodExecOptions{
-		Command:   e.Command,
-		Container: e.ContainerName,
-		Stdin:     e.Stdin != nil,
-		Stdout:    e.Stdout != nil,
-		Stderr:    e.Stderr != nil,
-		TTY:       e.Tty,
-	}, parameterCodec)
+		SubResource("exec").
+		VersionedParams(&coreV1.PodExecOptions{
+			Command:   e.Command,
+			Container: e.ContainerName,
+			Stdin:     e.Stdin != nil,
+			Stdout:    e.Stdout != nil,
+			Stderr:    e.Stderr != nil,
+			TTY:       e.Tty,
+		}, scheme.ParameterCodec)
 
 	exec, err := remotecommand.NewSPDYExecutor(e.RESTConfig, "POST", req.URL())
 	if err != nil {
