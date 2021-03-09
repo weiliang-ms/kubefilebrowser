@@ -130,6 +130,211 @@ paths:
       summary: Copy2Local
       tags:
       - Kubernetes
+  /api/k8s/exec:
+    get:
+      description: 在pod的容器中执行
+      parameters:
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: command
+        type: array
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: stderr
+        type: boolean
+      - in: query
+        name: stdout
+        type: boolean
+      - in: query
+        name: tty
+        type: boolean
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+      summary: Container 执行器
+      tags:
+      - Kubernetes
   /api/k8s/multi_upload:
     post:
       consumes:
@@ -343,6 +548,82 @@ paths:
           schema:
             $ref: '#/definitions/controller.JSONResult'
       summary: PodStatus
+      tags:
+      - Kubernetes
+  /api/k8s/terminal:
+    get:
+      description: pod 中容器的终端
+      parameters:
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: shell
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: shell
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: shell
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: shell
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+      summary: Container terminal
       tags:
       - Kubernetes
   /api/k8s/upload:

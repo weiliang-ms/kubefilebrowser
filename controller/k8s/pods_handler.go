@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/logs"
 	"kubecp/utils"
@@ -37,7 +37,7 @@ func ListNamespaceAllPods(c *gin.Context) {
 	}
 
 	if _, ok := c.GetQuery("namespace"); !ok {
-		res, err := config.RestClient.CoreV1().Pods(metaV1.NamespaceAll).
+		res, err := configs.RestClient.CoreV1().Pods(metaV1.NamespaceAll).
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: listPodsQuery.LabelSelector,
 				FieldSelector: listPodsQuery.FieldSelector,
@@ -50,7 +50,7 @@ func ListNamespaceAllPods(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	_, err := config.RestClient.CoreV1().Namespaces().
+	_, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), listPodsQuery.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -58,7 +58,7 @@ func ListNamespaceAllPods(c *gin.Context) {
 		return
 	}
 	if _, ok := c.GetQuery("pod"); !ok {
-		res, err := config.RestClient.CoreV1().Pods(listPodsQuery.Namespace).
+		res, err := configs.RestClient.CoreV1().Pods(listPodsQuery.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: listPodsQuery.LabelSelector,
 				FieldSelector: listPodsQuery.FieldSelector,
@@ -71,7 +71,7 @@ func ListNamespaceAllPods(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	res, err := config.RestClient.CoreV1().Pods(listPodsQuery.Namespace).
+	res, err := configs.RestClient.CoreV1().Pods(listPodsQuery.Namespace).
 		Get(context.TODO(), listPodsQuery.Pod, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)

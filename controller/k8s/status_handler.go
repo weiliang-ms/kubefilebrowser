@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	deploymentutil "k8s.io/kubernetes/pkg/controller/deployment/util"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/logs"
 	"kubecp/utils"
@@ -62,7 +62,7 @@ func PodStatus(c *gin.Context) {
 		return
 	}
 
-	if _, err := config.RestClient.CoreV1().Namespaces().
+	if _, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), statusQuery.Namespace, metaV1.GetOptions{}); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
@@ -73,7 +73,7 @@ func PodStatus(c *gin.Context) {
 	_d, ok := c.GetQuery("deployment")
 	if ok && _d != "" {
 		for _, d := range strings.Split(statusQuery.Deployment, ",") {
-			deployment, err := config.RestClient.AppsV1().Deployments(statusQuery.Namespace).
+			deployment, err := configs.RestClient.AppsV1().Deployments(statusQuery.Namespace).
 				Get(context.TODO(), d, metaV1.GetOptions{})
 			if err != nil {
 				logs.Error(err)
@@ -82,7 +82,7 @@ func PodStatus(c *gin.Context) {
 			deployments = append(deployments, *deployment)
 		}
 	} else {
-		deploymentList, err := config.RestClient.AppsV1().Deployments(statusQuery.Namespace).
+		deploymentList, err := configs.RestClient.AppsV1().Deployments(statusQuery.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: statusQuery.LabelSelector,
 				FieldSelector: statusQuery.FieldSelector,
@@ -103,13 +103,13 @@ func PodStatus(c *gin.Context) {
 		deployment := d
 		go func(wg *sync.WaitGroup, deployment *appsV1.Deployment) {
 			defer dWg.Done()
-			rsList, err := deploymentutil.ListReplicaSets(deployment, deploymentutil.RsListFromClient(config.RestClient.AppsV1()))
+			rsList, err := deploymentutil.ListReplicaSets(deployment, deploymentutil.RsListFromClient(configs.RestClient.AppsV1()))
 			if err != nil {
 				logs.Error(err)
 				return
 			}
 			podListFunc := func(namespace string, options metaV1.ListOptions) (*coreV1.PodList, error) {
-				return config.RestClient.CoreV1().Pods(namespace).List(context.TODO(), options)
+				return configs.RestClient.CoreV1().Pods(namespace).List(context.TODO(), options)
 			}
 			pods, err := deploymentutil.ListPods(deployment, rsList, podListFunc)
 			if err != nil {
@@ -128,7 +128,7 @@ func PodStatus(c *gin.Context) {
 		go func(wg *sync.WaitGroup, pod coreV1.Pod) {
 			defer wg.Done()
 			var containerMetrics = make(map[string]map[string]string)
-			podMetrics, err := config.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
+			podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
 				Get(context.Background(), pod.Name, metaV1.GetOptions{})
 			if err != nil && !errors.IsNotFound(err) {
 				resPods = append(resPods, ResPods{Error: err})

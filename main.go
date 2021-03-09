@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"kubecp/config"
-	_ "kubecp/config"
+	"kubecp/configs"
+	_ "kubecp/configs"
 	"kubecp/logs"
 	"kubecp/routers"
 	_ "kubecp/routers"
@@ -21,11 +21,11 @@ import (
 // @BasePath /
 // @query.collection.format multi
 func main() {
-	gin.SetMode(config.Config.RunMode)
+	gin.SetMode(configs.Config.RunMode)
 	logs.Info("Start up...")
 	r := routers.Router()
 	srv := &http.Server{
-		Addr: fmt.Sprintf("%s:%s", config.Config.HTTPAddr, config.Config.HTTPPort),
+		Addr: fmt.Sprintf("%s:%s", configs.Config.HTTPAddr, configs.Config.HTTPPort),
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 300,
 		ReadTimeout:  time.Second * 300,

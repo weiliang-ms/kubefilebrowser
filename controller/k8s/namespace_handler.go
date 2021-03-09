@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/logs"
 	"kubecp/utils"
@@ -34,7 +34,7 @@ func ListNamespace(c *gin.Context) {
 		return
 	}
 	if _, ok := c.GetQuery("namespace"); !ok {
-		res, err := config.RestClient.CoreV1().Namespaces().
+		res, err := configs.RestClient.CoreV1().Namespaces().
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: listNSQuery.LabelSelector,
 				FieldSelector: listNSQuery.FieldSelector,
@@ -47,7 +47,7 @@ func ListNamespace(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	res, err := config.RestClient.CoreV1().Namespaces().
+	res, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), listNSQuery.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)

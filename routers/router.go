@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/controller/k8s"
 	"kubecp/controller/static"
@@ -21,8 +21,8 @@ var (
 )
 
 func init() {
-	if !utils.InSliceString("*", config.Config.IPWhiteList) && len(config.Config.IPWhiteList) != 0 {
-		checker, err = denyip.NewChecker(config.Config.IPWhiteList)
+	if !utils.InSliceString("*", configs.Config.IPWhiteList) && len(configs.Config.IPWhiteList) != 0 {
+		checker, err = denyip.NewChecker(configs.Config.IPWhiteList)
 	}
 	if err != nil {
 		logs.Fatal(err)
@@ -42,6 +42,7 @@ func Router() *gin.Engine {
 		staticGroup.GET("/upload", static.UploadHtml)
 		staticGroup.GET("/multi_upload", static.MultiUploadHtml)
 		staticGroup.GET("/download", static.DownloadHtml)
+		staticGroup.GET("/terminal", static.TerminalHtml)
 	}
 
 	apiGroup := router.Group("/api", handlersMiddleware())
@@ -56,6 +57,8 @@ func Router() *gin.Engine {
 			k8sGroup.POST("/upload", k8s.Copy2Container)
 			k8sGroup.POST("/multi_upload", k8s.MultiCopy2Container)
 			k8sGroup.GET("/download", k8s.Copy2Local)
+			k8sGroup.GET("/terminal", k8s.Terminal)
+			k8sGroup.GET("/exec", k8s.Exec)
 		}
 	}
 	return router
@@ -65,7 +68,7 @@ func handlersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		render := controller.Gin{C: c}
 		reqIPAddr := denyip.GetRemoteIP(c.Request)
-		if !utils.InSliceString("*", config.Config.IPWhiteList) && len(config.Config.IPWhiteList) != 0 {
+		if !utils.InSliceString("*", configs.Config.IPWhiteList) && len(configs.Config.IPWhiteList) != 0 {
 			reeIPadLenOffset := len(reqIPAddr) - 1
 			for i := reeIPadLenOffset; i >= 0; i-- {
 				err = checker.IsAuthorized(reqIPAddr[i])

@@ -8,7 +8,7 @@ import (
 	"io"
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/logs"
 	"kubecp/utils"
@@ -49,7 +49,7 @@ func MultiCopy2Container(c *gin.Context) {
 		return
 	}
 	// check namespace
-	_, err := config.RestClient.CoreV1().Namespaces().
+	_, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -59,7 +59,7 @@ func MultiCopy2Container(c *gin.Context) {
 	podNameSlice := strings.Split(query.PodName, ",")
 	for _, podName := range podNameSlice {
 		// check pod
-		pod, err := config.RestClient.CoreV1().Pods(query.Namespace).
+		pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), podName, metaV1.GetOptions{})
 		if err != nil {
 			logs.Error(err)
@@ -79,7 +79,7 @@ func MultiCopy2Container(c *gin.Context) {
 		return
 	}
 	files := form.File["files"]
-	var _tmpSaveDir = filepath.Join(config.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
+	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var fWg sync.WaitGroup
 	var fErrCh = make(chan error, len(files))
 	var fErr error
@@ -158,7 +158,7 @@ func MultiCopy2Container(c *gin.Context) {
 	for _, podName := range podNameSlice {
 		cWg.Add(1)
 		var containerSlice []string
-		res, err := config.RestClient.CoreV1().Pods(query.Namespace).
+		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), podName, metaV1.GetOptions{})
 		if err != nil {
 			logs.Error(err)
@@ -174,7 +174,7 @@ func MultiCopy2Container(c *gin.Context) {
 			go func(wg *sync.WaitGroup, cErrCh chan error, podName, container string) {
 				defer wg.Done()
 				reader, writer := io.Pipe()
-				cp := copyer.NewCopyer(query.Namespace, podName, container, config.KuBeResConf, config.RestClient)
+				cp := copyer.NewCopyer(query.Namespace, podName, container, configs.KuBeResConf, configs.RestClient)
 				cp.Stdin = reader
 
 				go func() {
@@ -242,7 +242,7 @@ func Copy2Container(c *gin.Context) {
 		return
 	}
 	// check namespace
-	_, err := config.RestClient.CoreV1().Namespaces().
+	_, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -251,7 +251,7 @@ func Copy2Container(c *gin.Context) {
 	}
 
 	// check pod
-	pod, err := config.RestClient.CoreV1().Pods(query.Namespace).
+	pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 		Get(context.TODO(), query.PodName, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -270,7 +270,7 @@ func Copy2Container(c *gin.Context) {
 		return
 	}
 	files := form.File["files"]
-	var _tmpSaveDir = filepath.Join(config.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
+	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var fWg sync.WaitGroup
 	var fErrCh = make(chan error, len(files))
 	defer close(fErrCh)
@@ -334,7 +334,7 @@ func Copy2Container(c *gin.Context) {
 	if len(query.ContainerName) != 0 {
 		containerSlice = strings.Split(query.ContainerName, ",")
 	} else {
-		res, err := config.RestClient.CoreV1().Pods(query.Namespace).
+		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), query.PodName, metaV1.GetOptions{})
 		if err != nil {
 			logs.Error(err)
@@ -371,7 +371,7 @@ func Copy2Container(c *gin.Context) {
 		go func(wg *sync.WaitGroup, container string) {
 			defer wg.Done()
 			reader, writer := io.Pipe()
-			cp := copyer.NewCopyer(query.Namespace, query.PodName, container, config.KuBeResConf, config.RestClient)
+			cp := copyer.NewCopyer(query.Namespace, query.PodName, container, configs.KuBeResConf, configs.RestClient)
 			cp.Stdin = reader
 
 			go func() {
@@ -433,7 +433,7 @@ func Copy2Local(c *gin.Context) {
 		return
 	}
 	// check namespace
-	_, err := config.RestClient.CoreV1().Namespaces().
+	_, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -442,7 +442,7 @@ func Copy2Local(c *gin.Context) {
 	}
 
 	// check pod
-	pod, err := config.RestClient.CoreV1().Pods(query.Namespace).
+	pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 		Get(context.TODO(), query.PodName, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -463,7 +463,7 @@ func Copy2Local(c *gin.Context) {
 	// and attempted to navigate beyond "/" in a remote filesystem
 	prefix = stripPathShortcuts(prefix)
 	tarFileName := fmt.Sprintf("%s_%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10), strings.ReplaceAll(prefix, "/", "_"))
-	filePath := filepath.Join(config.TmpPath, tarFileName)
+	filePath := filepath.Join(configs.TmpPath, tarFileName)
 
 	//if err := utils.UnTarAll(r, _tmpSaveDir, prefix); err != nil {
 	//	logs.Error(err)
@@ -485,7 +485,7 @@ func Copy2Local(c *gin.Context) {
 		}
 	}()
 
-	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, config.KuBeResConf, config.RestClient)
+	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
 	cp.Stdout = writer
 
 	err = cp.CopyFromPod(query.DestPath)
@@ -495,8 +495,8 @@ func Copy2Local(c *gin.Context) {
 		return
 	}
 
-	c.Header("X-Redirect", fmt.Sprintf("/%s/%s", config.Config.DownLoadTmp, tarFileName))
-	render.SetJson(fmt.Sprintf("/%s/%s", config.Config.DownLoadTmp, tarFileName))
+	c.Header("X-Redirect", fmt.Sprintf("/%s/%s", configs.Config.DownLoadTmp, tarFileName))
+	render.SetJson(fmt.Sprintf("/%s/%s", configs.Config.DownLoadTmp, tarFileName))
 }
 
 func getPrefix(file string) string {

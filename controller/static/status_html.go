@@ -134,7 +134,7 @@ const statusHtml = `<!DOCTYPE html>
 				dataType: "json",
 				success:function(res){
 					if (res.code != 200) {
-						alert(res.info.message);
+						layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
 					for(var key in data){
@@ -155,6 +155,7 @@ const statusHtml = `<!DOCTYPE html>
             <input class="fake-btn" type="button" value="上传到单个pod内多容器" onclick="javascrtpt:window.location.href='/upload'">&nbsp;
             <input class="fake-btn" type="button" value="上传到多个pod内所有容器" onclick="javascrtpt:window.location.href='/multi_upload'">&nbsp;
             <input class="fake-btn" type="button" value="从容器内下载" onclick="javascrtpt:window.location.href='/download'">&nbsp;
+            <input class="fake-btn" type="button" value="容器在线终端" onclick="javascrtpt:window.location.href='/terminal'">&nbsp;
           </div>
         </div>
         <div class="center">
@@ -215,7 +216,7 @@ const statusHtml = `<!DOCTYPE html>
           },
           //请求失败时，弹出错误信息
           error: function (jqXHR, status, e) {
-            layer.alert('数据请求失败，请后再试!');
+            layer.alert('数据请求失败，请后再试!', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
           }
         });
         function getDeployments() {
@@ -223,7 +224,7 @@ const statusHtml = `<!DOCTYPE html>
             $("#tbody").empty();
 			var namespace=$("#namespace option:selected");
 			if (namespace.text() == "") {
-				 layer.alert('命名空间为空');
+				 layer.alert('命名空间为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
 			//获取数据
@@ -235,7 +236,7 @@ const statusHtml = `<!DOCTYPE html>
 				dataType: "json",
 				success:function(res){
 					if (res.code != 200) {
-						alert(res.info.message);
+						alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
 					for(var key in data){
@@ -244,7 +245,7 @@ const statusHtml = `<!DOCTYPE html>
                     $("#deployment").select2('val','1')
 				},
                 error: function() {
-                   layer.alert("错误");
+                   layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};
@@ -252,12 +253,12 @@ const statusHtml = `<!DOCTYPE html>
 			$("#tbody").empty();
 			var namespace=$("#namespace option:selected");
 			if (namespace.text() == "") {
-				 layer.alert('命名空间不能为空');
+				 layer.alert('命名空间不能为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
             var deployment=$("#deployment option:selected");
 			if (deployment.text() == "") {
-				 layer.alert('deployment不能为空');
+				 layer.alert('deployment不能为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
             var deploymentArray = new Array();
@@ -274,11 +275,11 @@ const statusHtml = `<!DOCTYPE html>
 				dataType: "json",
 				success:function(res) {
 					if (res.code != 200) {
-						 layer.alert(res.info.message);
+						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                         return;
 					};
                     if (res.data == null) {
-                         layer.alert("亲, 没找到你想要的数据, 请换一个试试");
+                         layer.alert("亲, 没找到你想要的数据, 请换一个试试", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                         return;
                     };
                     var rData = res.data;
@@ -306,7 +307,7 @@ const statusHtml = `<!DOCTYPE html>
                     };
 				},
                 error: function() {
-                     layer.alert("错误");
+                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/controller"
 	"kubecp/logs"
 	"kubecp/utils"
@@ -37,7 +37,7 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 	}
 
 	if _, ok := c.GetQuery("namespace"); !ok {
-		res, err := config.RestClient.AppsV1().Deployments(metaV1.NamespaceAll).
+		res, err := configs.RestClient.AppsV1().Deployments(metaV1.NamespaceAll).
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: listDeploymentQuery.LabelSelector,
 				FieldSelector: listDeploymentQuery.FieldSelector,
@@ -50,7 +50,7 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	_, err := config.RestClient.CoreV1().Namespaces().
+	_, err := configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), listDeploymentQuery.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
@@ -58,7 +58,7 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 		return
 	}
 	if _, ok := c.GetQuery("deployment"); !ok {
-		res, err := config.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
+		res, err := configs.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
 				LabelSelector: listDeploymentQuery.LabelSelector,
 				FieldSelector: listDeploymentQuery.FieldSelector,
@@ -71,7 +71,7 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	res, err := config.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
+	res, err := configs.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
 		Get(context.TODO(), listDeploymentQuery.Deployment, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)

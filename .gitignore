@@ -15,6 +15,7 @@
 # vendor/
 
 kubecp_*
+kubecp
 .idea
 .vscode
 tmp

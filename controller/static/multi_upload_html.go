@@ -122,7 +122,7 @@ const multiUploadHtml = `<!DOCTYPE html>
           },
           //请求失败时，弹出错误信息
           error: function (jqXHR, status, e) {
-            layer.alert('数据请求失败，请后再试!');
+            layer.alert('数据请求失败，请后再试!', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
           }
         });
 		function getNamespace() {
@@ -136,7 +136,7 @@ const multiUploadHtml = `<!DOCTYPE html>
 				dataType: "json",
 				success:function(res){
 					if (res.code != 200) {
-						 layer.alert(res.info.message);
+						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
 					for(var key in data){
@@ -145,7 +145,7 @@ const multiUploadHtml = `<!DOCTYPE html>
                     $("#namespace").select2('val','1')
 				},
                 error: function() {
-                     layer.alert("错误");
+                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};
@@ -154,7 +154,7 @@ const multiUploadHtml = `<!DOCTYPE html>
 			$("#pod").empty();
 			var namespace=$("#namespace option:selected");
 			if (namespace.text() == "") {
-				 layer.alert('命名空间为空');
+				 layer.alert('命名空间为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
 			//获取数据
@@ -166,7 +166,7 @@ const multiUploadHtml = `<!DOCTYPE html>
 				dataType: "json",
 				success:function(res){
 					if (res.code != 200) {
-						 layer.alert(res.info.message);
+						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
 					for(var key in data){
@@ -175,7 +175,7 @@ const multiUploadHtml = `<!DOCTYPE html>
                     $("#pod").select2('val','1')
 				},
                 error: function() {
-                     layer.alert("错误");
+                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};
@@ -209,25 +209,25 @@ const multiUploadHtml = `<!DOCTYPE html>
 				contentType: false,
 				success: function(res) {
 					if (res.code != 200) {
-						 layer.alert(res.info.message);
+						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}else{
                         $("#fileFolderOne").empty();
                         if ((typeof(res.data.success)!="undefined")&&(typeof(res.data.failure)!="undefined")) {
-                          layer.alert(res.data.success+"<br>"+res.data.failure);
+                          layer.alert(res.data.success+"<br>"+res.data.failure, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                           return;
                         }
 						if (typeof(res.data.success)!="undefined") {
-                          layer.alert(res.data.success);
+                          layer.alert(res.data.success, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                           return;
                         }
                         if (typeof(res.data.failure)!="undefined") {
-                          layer.alert(res.data.failure);
+                          layer.alert(res.data.failure, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                           return;
                         }
 					}
 				},
                 error: function() {
-                     layer.alert("错误");
+                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};
@@ -261,15 +261,15 @@ const multiUploadHtml = `<!DOCTYPE html>
 				contentType: false,
 				success: function(res) {
 					if (res.code != 200) {
-						 layer.alert(res.info.message);
+						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}else{
                         $("#fileFolderMore").empty();
                         if ((typeof(res.data.success)!="undefined")&&(typeof(res.data.failure)!="undefined")) {
-                          layer.alert(res.data.success+"<br>"+res.data.failure);
+                          layer.alert(res.data.success+"<br>"+res.data.failure, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                           return;
                         }
 						if (typeof(res.data.success)!="undefined") {
-                          layer.alert(res.data.success);
+                          layer.alert(res.data.success, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                           return;
                         }
                         if (typeof(res.data.failure)!="undefined") {
@@ -279,7 +279,7 @@ const multiUploadHtml = `<!DOCTYPE html>
 					}
 				},
                 error: function() {
-                     layer.alert("错误");
+                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                 }
 			});
 		};

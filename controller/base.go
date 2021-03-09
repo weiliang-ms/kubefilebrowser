@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"kubecp/config"
+	"kubecp/configs"
 	"kubecp/utils"
 	"net/http"
 )
@@ -27,7 +27,7 @@ func NewRes(data interface{}, err error, code int) *JSONResult {
 		code = 200
 	}
 	codeMsg := ""
-	if config.Config.RunMode == "release" && code != 200 {
+	if configs.Config.RunMode == "release" && code != 200 {
 		codeMsg = utils.GetMsg(code)
 	}
 
