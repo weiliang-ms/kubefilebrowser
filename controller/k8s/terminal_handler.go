@@ -49,8 +49,8 @@ func Terminal(c *gin.Context) {
 		Container: query.Container,
 		Shell:     query.Shell,
 	}
-	sshReq := webTerminal.SshReq()
-	executor, err := remotecommand.NewSPDYExecutor(configs.KuBeResConf, "POST", sshReq.URL())
+	SshSPDYExecutor := webTerminal.NewSshSPDYExecutor()
+	executor, err := remotecommand.NewSPDYExecutor(configs.KuBeResConf, "POST", SshSPDYExecutor.URL())
 	if utils.WsHandleError(wsConn, err) {
 		wsConn.WsClose()
 		return

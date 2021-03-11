@@ -9,7 +9,7 @@ const terminalHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>UploadToContainer</title>
+	<title>Container Terminal</title>
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/js/select2.min.js"></script>
@@ -21,14 +21,14 @@ const terminalHtml = `<!DOCTYPE html>
     <script src="https://www.yfdou.com/xterm/dist/addons/webLinks/webLinks.js"></script>
 	<style>
         a:link {text-decoration:none;}
-        .ge_table{ }
-		.ge_table td{ height:44px; line-height:26px;}
+        p{height:30px;}
+        label{height:30px;}
 		.hide_border{border: 0px;padding-left: 5px;line-height: 26px;width:205px;height: 26px;}
 		.ge_input{border:1px solid #ccc;padding-left:5px;line-height:26px;width:205px; height:26px;}
 		.short_select{
     		background:#fafdfe;
     		height:30px;
-    		width:600px;
+    		width:60px;
     		line-height:28px;
     		border:1px solid #9bc0dd;
     		-moz-border-radius:2px;
@@ -36,15 +36,15 @@ const terminalHtml = `<!DOCTYPE html>
     		border-radius:4px;
 		}
 		#containers{
-            width:680px;
-            margin:20px auto;
-            padding:15px;
+            /* width:680px; */
+            margin:5px auto;
+            padding:5px;
             background-color:#eee;
             border-radius: 15px;
         }
 		.fake-file-btn {
 			position: relative;
-			display: inline-block;
+			/* display: inline-block; */
 			background: #D0EEFF;
 			border: 1px solid #99D3F5;
 			border-radius: 4px;
@@ -71,50 +71,62 @@ const terminalHtml = `<!DOCTYPE html>
 </head>
 <body>
   <div id="containers">
-    <table cellpadding="0" cellspacing="0" border="0" class="ge_table">
-      <tr>
-        <td>命名空间: </td>
-          <!-- td><input class="ge_input" type="text" id="namespace" value="default"></td -->
-        <td>
+      <p>
+        <label>命名空间: </label>
+        <label>
           <select id="namespace" class="short_select"></select>
           <script type="text/javascript">
-            $("#namespace").select2({placeholder: '请选择命名空间',allowClear: true});
+            $("#namespace").select2({placeholder: '请选择命名空间',allowClear: true,width: '160px'});
           </script>
-        </td>
-      </tr>
-      <tr>
-        <td>POD名称: </td>
-        <!-- td><input class="ge_input" type="text" id="pod" value="nginx-test-76996486df-tdjdf"></td-->
-        <td>
+        </label>
+        &nbsp;&nbsp;
+        <label>POD名称: </label>
+        <label>
           <select id="pod" class="short_select"></select>
           <script type="text/javascript">
-            $("#pod").select2({placeholder: '请选择pod',allowClear: true});
+            $("#pod").select2({placeholder: '请选择pod',allowClear: true,width: '260px'});
           </script>
-        </td>
-      </tr>
-      <tr> 
-        <td>容器名字: </td>
-        <!-- td><input class="ge_input" type="text" id="container" value="nginx-0"></td -->
-        <td>
+        </label>
+        <label>容器名字: </label>
+        <label>
           <select id="container" class="short_select"></select>
           <script type="text/javascript">
             $("#container").select2({
               placeholder: '请选择容器，最多选择1个',
               allowClear: true,
               maximumSelectionLength:1,
+              width: '260px',
             });
           </script>
-		</td>
-	  </tr>
-    </table> 
-    <p style="text-align:right">
-      <span class="fake-file-btn">
-	    <a href="/">首页</a>
-	  </span>
+		</label>
+          &nbsp;&nbsp;
+          <label >shell: </label>
+        <label>
+          <select id="shell" name="shell">
+            <option value="sh">sh</option>
+            <option value="bash">bash</option>
+            <option value="cmd">cmd</option>
+          </select >
+          <script type="text/javascript">
+            $("#shell").select2({
+              placeholder: '选择',
+              allowClear: true,
+              width: '80px',
+            });
+          </script>
+        </label>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <label>
 	  <span class="fake-file-btn" id="fake-btn">
 		连接
 	  </span>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="fake-file-btn">
+	    <a href="/">首页</a>
+	  </span>
+    </label>
     </p>
+    <div id="terminal"></div>
   </div>
   <script>
         $.ajaxSetup({
@@ -226,7 +238,11 @@ const terminalHtml = `<!DOCTYPE html>
           var namespace=$("#namespace option:selected");
           var pod = $("#pod option:selected");
           var container = $("#container option:selected");
-          
+          var shell = $("#shell option:selected");
+          if (container.text() == "") {
+		  	layer.alert('容器不能为空');
+		  	return
+		  }
           // xterm配置自适应大小插件
           Terminal.applyAddon(fit);
           
@@ -247,7 +263,7 @@ const terminalHtml = `<!DOCTYPE html>
           term.focus();
           
           // 连接websocket
-          ws = new WebSocket("ws://"+window.location.host+"/api/k8s/terminal?namespace=" + namespace.text() + "&pods=" + pod.text() + "&container=" + container.text());
+          ws = new WebSocket("ws://"+window.location.host+"/api/k8s/terminal?namespace=" + namespace.text() + "&pods=" + pod.text() + "&container=" + container.text() + "&shell=" + shell.text());
           
           ws.onopen = function(event) {
             console.log(event)
@@ -301,8 +317,6 @@ const terminalHtml = `<!DOCTYPE html>
 			connTerminal();
 		});
     </script>
-    <br />
-    <div id="terminal"></div>
 </body>
 `
 

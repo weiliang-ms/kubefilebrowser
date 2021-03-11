@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// 从io.Reader拷贝到pod
+// 从io.Writer拷贝到pod
 // tar file ---> io.Writer ---> kubernetes api ---> io.Reader ---> unTar file
 func (c *copyer) CopyToPod(dest string) error {
 	if c.NoPreserve {
@@ -18,6 +18,7 @@ func (c *copyer) CopyToPod(dest string) error {
 	if len(destDir) > 0 {
 		c.Command = append(c.Command, "-C", destDir)
 	}
+	// 重试三次
 	attempts := 3
 	attempt := 0
 	for attempt < attempts {

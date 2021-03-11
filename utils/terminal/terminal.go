@@ -32,7 +32,7 @@ type WebTerminal struct {
 	Shell     string
 }
 
-func (wt *WebTerminal) SshReq() *rest.Request {
+func (wt *WebTerminal) NewSshSPDYExecutor() *rest.Request {
 	return wt.K8sClient.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(wt.PodName).

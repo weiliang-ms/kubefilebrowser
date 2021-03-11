@@ -116,7 +116,7 @@ func InitWebsocket(resp http.ResponseWriter, req *http.Request) (wsConn *WsConne
 		closeChan: make(chan byte),
 		isClosed:  false,
 	}
-	logs.Info(wsSocket.RemoteAddr(), "WebSocket connection")
+	logs.Info(wsSocket.RemoteAddr(), " WebSocket connection")
 	// 存活检测
 	go wsConn.procLoop()
 	// 读协程
@@ -154,7 +154,7 @@ func (wsConn *WsConnection) WsClose() {
 	wsConn.mutex.Lock()
 	if !wsConn.isClosed {
 		wsConn.isClosed = true
-		logs.Error(wsConn.wsSocket.RemoteAddr(), "WebSocket connection closed")
+		logs.Warn(wsConn.wsSocket.RemoteAddr(), " WebSocket connection closed")
 		//<-wsConn.closeChan
 		close(wsConn.closeChan)
 	}
