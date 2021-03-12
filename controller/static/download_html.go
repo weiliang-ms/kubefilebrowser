@@ -62,6 +62,29 @@ const downloadHtml = `<!DOCTYPE html>
 			filter: alpha(opacity=0);
 			cursor: pointer
 		}
+        /** 新增按钮 **/
+        #addPath{
+            padding:3px;
+            display:inline-block;
+            background-color:#5ac7d0;
+            color:#f1f1f1;
+            border-radius: 4px;
+        }
+        /** 删除按钮 **/
+        .removeVar{
+            margin:auto;
+            padding:5px;
+            display:inline-block;
+            background-color:#B02109;
+            color:#f1f1f1;
+            border:1px solid #005;
+            border-radius: 4px;
+            style="line-height: 15px";
+        }
+ 
+        #addPath:hover, .removeVar:hover{
+            cursor: pointer;
+        }
 	</style>
 </head>
 <body>
@@ -100,11 +123,13 @@ const downloadHtml = `<!DOCTYPE html>
                     </script>
 				</td>
 			</tr>
-			<tr>
-				<td>目标路径: </td>
-				<td><input class="short_select" type="text" id="dest_path" value="/root"></td>
-			</tr>
 		</table>
+        <p style="line-height: 20px">
+          <span><a href="#" rel="external nofollow" rel="external nofollow" rel="external nofollow" id="AddMoreFileBox" class="btn btn-info fake-file-btn">添加目标路径</a></span>
+          <div id="InputsWrapper">
+            <div><input type="text" name="dest_path[]" id="field_1" style="width:300px" class="short_select" value=""/>&nbsp;&nbsp;<a href="#" rel="external nofollow" rel="external nofollow" rel="external nofollow" class="removeVar"><input type='button' value='删除'></a></div>
+          </div>
+        </p>
         <p style="text-align:right">
         <span class="fake-file-btn">
 			<a href="/">首页</a>
@@ -216,18 +241,50 @@ const downloadHtml = `<!DOCTYPE html>
 			});
 		};
 
+        $(document).ready(function() {
+            var MaxInputs    = 8; //maximum input boxes allowed
+            var InputsWrapper  = $("#InputsWrapper"); //Input boxes wrapper ID
+            var AddButton    = $("#AddMoreFileBox"); //Add button ID
+            var x = InputsWrapper.length; //initlal text box count
+            var FieldCount=1; //to keep track of text box added
+            $(AddButton).click(function (e) //on add input button click
+            {
+                if(x <= MaxInputs) //max input box allowed
+                {
+                    FieldCount++; //text box added increment
+                    //add input box
+                    $(InputsWrapper).append('<div><input type="text" name="dest_path[]" id="field_'+ FieldCount +'" style="width:300px" class="short_select" value=""/>&nbsp;&nbsp;<a href="#" rel="external nofollow" rel="external nofollow" rel="external nofollow" class="removeVar"><input type="button" value="删除"></a></div>');
+                        x++; //text box increment
+                    }
+                    return false;
+                });
+                $("body").on("click",".removeVar", function(e){ //user click on remove text
+                     if( x > 1 ) {
+                         $(this).parent('div').remove(); //remove text box
+                         x--; //decrement textbox
+                }
+                return false;
+            })
+        });
+
 		function downloadFiles() {
 			var namespace=$("#namespace option:selected");
         	var pod = $("#pod option:selected");
 			var container = $("#container option:selected");
-			var destPath = document.getElementById("dest_path").value
+			var destPath = $("*[name='dest_path']").val();
+            var pathArr = new Array;
+            var dest_path=new String;
+            $("input[name='dest_path[]']").each(function(index, item){
+                pathArr[index] = $(this).val();
+                dest_path = pathArr.join('&dest_path=');
+            });
 			if (container.text() == "") {
-				 layer.alert('容器名称为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
+				layer.alert('容器名称为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
 			$.ajax({
 				type: 'GET',
-				url: "/api/k8s/download?namespace="+namespace.text()+"&pod_name="+pod.text()+"&container_name="+container.text()+"&dest_path="+destPath,
+				url: "/api/k8s/download?namespace="+namespace.text()+"&pod_name="+pod.text()+"&container_name="+container.text()+"&dest_path="+dest_path,
 				timeout: 300 * 1000,
 				processData: false,
 				contentType: false,

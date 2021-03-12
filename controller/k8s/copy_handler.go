@@ -33,9 +33,9 @@ type MultiCopyQuery struct {
 // @description 上传到容器
 // @Tags Kubernetes
 // @Accept multipart/form-data
-// @Param namespace query string true "namespace" default(default)
-// @Param pod_name query string true "pod_name" default(nginx-test-76996486df-tdjdf)
-// @Param dest_path query string false "dest_path" default(/root/)
+// @Param namespace query MultiCopyQuery true "namespace" default(default)
+// @Param pod_name query MultiCopyQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
+// @Param dest_path query MultiCopyQuery false "dest_path" default(/root/)
 // @Param files formData file true "files"
 // @Success 200 {object} controller.JSONResult
 // @Failure 500 {object} controller.JSONResult
@@ -225,10 +225,10 @@ type CopyQuery struct {
 // @description 上传到容器
 // @Tags Kubernetes
 // @Accept multipart/form-data
-// @Param namespace query string true "namespace" default(default)
-// @Param pod_name query string true "pod_name" default(nginx-test-76996486df-tdjdf)
-// @Param container_name query string true "container_name" default(nginx-0)
-// @Param dest_path query string false "dest_path" default(/root/)
+// @Param namespace query CopyQuery true "namespace" default(default)
+// @Param pod_name query CopyQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
+// @Param container_name query CopyQuery true "container_name" default(nginx-0)
+// @Param dest_path query CopyQuery false "dest_path" default(/root/)
 // @Param files formData file true "files"
 // @Success 200 {object} controller.JSONResult
 // @Failure 500 {object} controller.JSONResult
@@ -409,20 +409,27 @@ func Copy2Container(c *gin.Context) {
 	})
 }
 
+type CopyFromPodQuery struct {
+	Namespace     string   `json:"namespace" form:"namespace" binding:"required"`
+	PodName       string   `json:"pod_name" form:"pod_name" binding:"required"`
+	ContainerName string   `json:"container_name" form:"container_name"`
+	DestPath      []string `json:"dest_path" form:"dest_path" binding:"required"`
+}
+
 // @Summary Copy2Local
 // @description 从容器下载到本地
 // @Tags Kubernetes
 // @Accept json
-// @Param namespace query string true "namespace" default(default)
-// @Param pod_name query string true "pod_name" default(nginx-test-76996486df-tdjdf)
-// @Param container_name query string true "container_name" default(nginx-0)
-// @Param dest_path query string false "dest_path" default(/root)
+// @Param namespace query CopyFromPodQuery true "namespace" default(default)
+// @Param pod_name query CopyFromPodQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
+// @Param container_name query CopyFromPodQuery true "container_name" default(nginx-0)
+// @Param dest_path query CopyFromPodQuery true "dest_path" default(/root)
 // @Success 200 {object} controller.JSONResult
 // @Failure 500 {object} controller.JSONResult
 // @Router /api/k8s/download [get]
 func Copy2Local(c *gin.Context) {
 	render := controller.Gin{C: c}
-	var query CopyQuery
+	var query CopyFromPodQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
@@ -457,12 +464,13 @@ func Copy2Local(c *gin.Context) {
 	}
 
 	reader, writer := io.Pipe()
-	prefix := getPrefix(query.DestPath)
-	prefix = path.Clean(prefix)
+	//prefix := getPrefix(query.DestPath)
+	//prefix = path.Clean(prefix)
 	// remove extraneous path shortcuts - these could occur if a path contained extra "../"
 	// and attempted to navigate beyond "/" in a remote filesystem
-	prefix = stripPathShortcuts(prefix)
-	tarFileName := fmt.Sprintf("%s_%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10), strings.ReplaceAll(prefix, "/", "_"))
+	//prefix = stripPathShortcuts(prefix)
+	//tarFileName := fmt.Sprintf("%s_%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10), strings.ReplaceAll(prefix, "/", "_"))
+	tarFileName := fmt.Sprintf("%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10))
 	filePath := filepath.Join(configs.TmpPath, tarFileName)
 
 	//if err := utils.UnTarAll(r, _tmpSaveDir, prefix); err != nil {

@@ -2,9 +2,12 @@ package k8s
 
 import (
 	"bytes"
+	"context"
 	"github.com/gin-gonic/gin"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kubecp/configs"
 	"kubecp/controller"
+	"kubecp/logs"
 	"kubecp/utils"
 	"kubecp/utils/execer"
 	"strings"
@@ -45,6 +48,23 @@ func Exec(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
+	// check namespace
+	_, err := configs.RestClient.CoreV1().Namespaces().
+		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
+	if err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_APP, err)
+		return
+	}
+
+	// check pod
+	_, err = configs.RestClient.CoreV1().Pods(query.Namespace).
+		Get(context.TODO(), query.Pods, metaV1.GetOptions{})
+	if err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_APP, err)
+		return
+	}
 
 	exec := execer.NewExec(query.Namespace, query.Pods, query.Container, configs.KuBeResConf, configs.RestClient)
 	exec.Command = query.Command
@@ -56,13 +76,14 @@ func Exec(c *gin.Context) {
 	if query.Stderr {
 		exec.Stderr = &stderr
 	}
-	err := exec.Exec()
+	err = exec.Exec()
 	if err != nil {
+		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 	var out []map[int]string
-	for k, v := range strings.Split(stdout.String(), "\n") {
+	for k, v := range strings.Split(stdout.String(), "\r\n") {
 		if len(v) == 0 {
 			continue
 		}

@@ -1,10 +1,13 @@
 package k8s
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/remotecommand"
 	"kubecp/configs"
 	"kubecp/controller"
+	"kubecp/logs"
 	"kubecp/utils"
 	kube "kubecp/utils/terminal"
 )
@@ -33,6 +36,24 @@ func Terminal(c *gin.Context) {
 	}
 	if err := c.ShouldBindQuery(query); err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
+		return
+	}
+
+	// check namespace
+	_, err := configs.RestClient.CoreV1().Namespaces().
+		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
+	if err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_APP, err)
+		return
+	}
+
+	// check pod
+	_, err = configs.RestClient.CoreV1().Pods(query.Namespace).
+		Get(context.TODO(), query.Pods, metaV1.GetOptions{})
+	if err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 

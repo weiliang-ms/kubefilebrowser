@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
+	"kubecp/logs"
 )
 
 type execer struct {
@@ -47,12 +48,14 @@ func (e *execer) Exec() error {
 			Stderr:    e.Stderr != nil,
 			TTY:       e.Tty,
 		}, scheme.ParameterCodec)
-
+	logs.InfoWithFields("request k8s api", logs.Fields{
+		"path":      req.URL().Path,
+		"raw_query": req.URL().RawQuery,
+	})
 	exec, err := remotecommand.NewSPDYExecutor(e.RESTConfig, "POST", req.URL())
 	if err != nil {
 		return err
 	}
-
 	var sizeQueue remotecommand.TerminalSizeQueue
 	err = exec.Stream(remotecommand.StreamOptions{
 		Stdin:             e.Stdin,
