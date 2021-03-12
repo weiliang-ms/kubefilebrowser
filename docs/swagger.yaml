@@ -95,28 +95,77 @@ paths:
       - application/json
       description: 从容器下载到本地
       parameters:
-      - default: default
-        description: namespace
+      - in: query
+        name: container_name
+        type: string
+      - collectionFormat: multi
         in: query
+        items:
+          type: string
+        name: dest_path
+        required: true
+        type: array
+      - in: query
         name: namespace
         required: true
         type: string
-      - default: nginx-test-76996486df-tdjdf
-        description: pod_name
-        in: query
+      - in: query
         name: pod_name
         required: true
         type: string
-      - default: nginx-0
-        description: container_name
-        in: query
+      - in: query
         name: container_name
+        type: string
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: dest_path
+        required: true
+        type: array
+      - in: query
+        name: namespace
         required: true
         type: string
-      - default: /root
-        description: dest_path
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - collectionFormat: multi
         in: query
+        items:
+          type: string
         name: dest_path
+        required: true
+        type: array
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: dest_path
+        required: true
+        type: array
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
         type: string
       responses:
         "200":
@@ -341,22 +390,41 @@ paths:
       - multipart/form-data
       description: 上传到容器
       parameters:
-      - default: default
-        description: namespace
-        in: query
+      - in: query
+        name: dest_path
+        required: true
+        type: string
+      - in: query
         name: namespace
         required: true
         type: string
-      - default: nginx-test-76996486df-tdjdf
-        description: pod_name
-        in: query
+      - in: query
         name: pod_name
         required: true
         type: string
-      - default: /root/
-        description: dest_path
-        in: query
+      - in: query
         name: dest_path
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: dest_path
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
         type: string
       - description: files
         in: formData
@@ -632,28 +700,65 @@ paths:
       - multipart/form-data
       description: 上传到容器
       parameters:
-      - default: default
-        description: namespace
-        in: query
+      - in: query
+        name: container_name
+        type: string
+      - in: query
+        name: dest_path
+        required: true
+        type: string
+      - in: query
         name: namespace
         required: true
         type: string
-      - default: nginx-test-76996486df-tdjdf
-        description: pod_name
-        in: query
+      - in: query
         name: pod_name
         required: true
         type: string
-      - default: nginx-0
-        description: container_name
-        in: query
+      - in: query
         name: container_name
+        type: string
+      - in: query
+        name: dest_path
         required: true
         type: string
-      - default: /root/
-        description: dest_path
-        in: query
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - in: query
         name: dest_path
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - in: query
+        name: dest_path
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
         type: string
       - description: files
         in: formData

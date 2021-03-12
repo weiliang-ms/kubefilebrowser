@@ -142,34 +142,111 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "default": "default",
-                        "description": "namespace",
+                        "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "name": "namespace",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "nginx-test-76996486df-tdjdf",
-                        "description": "pod_name",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "nginx-0",
-                        "description": "container_name",
                         "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "name": "dest_path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "/root",
-                        "description": "dest_path",
-                        "name": "dest_path",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "container_name",
                         "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -520,26 +597,57 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "default": "default",
-                        "description": "namespace",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "name": "namespace",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "nginx-test-76996486df-tdjdf",
-                        "description": "pod_name",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "/root/",
-                        "description": "dest_path",
                         "name": "dest_path",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "file",
@@ -979,34 +1087,95 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "default": "default",
-                        "description": "namespace",
+                        "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "name": "namespace",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "nginx-test-76996486df-tdjdf",
-                        "description": "pod_name",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "nginx-0",
-                        "description": "container_name",
                         "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "dest_path",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "default": "/root/",
-                        "description": "dest_path",
-                        "name": "dest_path",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "container_name",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "file",
