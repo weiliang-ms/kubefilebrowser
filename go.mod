@@ -1,6 +1,6 @@
 module kubecp
 
-go 1.15
+go 1.16
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-openapi/spec v0.20.1 // indirect
 	github.com/go-openapi/swag v0.19.13 // indirect
+	github.com/google/cadvisor v0.38.7 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/joho/godotenv v1.3.0
@@ -22,11 +23,11 @@ require (
 	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	k8s.io/api v0.20.2
-	k8s.io/apimachinery v0.20.2
-	k8s.io/client-go v0.20.2
+	k8s.io/api v0.20.4
+	k8s.io/apimachinery v0.20.4
+	k8s.io/client-go v0.20.4
 	k8s.io/kubernetes v1.20.2
-	k8s.io/metrics v0.20.2
+	k8s.io/metrics v0.20.4
 )
 
 replace k8s.io/api => k8s.io/api v0.20.2
@@ -45,7 +46,7 @@ replace k8s.io/cloud-provider => k8s.io/cloud-provider v0.20.2
 
 replace k8s.io/cluster-bootstrap => k8s.io/cluster-bootstrap v0.20.2
 
-replace k8s.io/code-generator => k8s.io/code-generator v0.20.3-rc.0
+replace k8s.io/code-generator => k8s.io/code-generator v0.20.5-rc.0
 
 replace k8s.io/component-base => k8s.io/component-base v0.20.2
 
@@ -53,7 +54,7 @@ replace k8s.io/component-helpers => k8s.io/component-helpers v0.20.2
 
 replace k8s.io/controller-manager => k8s.io/controller-manager v0.20.2
 
-replace k8s.io/cri-api => k8s.io/cri-api v0.20.3-rc.0
+replace k8s.io/cri-api => k8s.io/cri-api v0.20.5-rc.0
 
 replace k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.20.2
 
@@ -73,6 +74,6 @@ replace k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.20.2
 
 replace k8s.io/metrics => k8s.io/metrics v0.20.2
 
-replace k8s.io/mount-utils => k8s.io/mount-utils v0.20.3-rc.0
+replace k8s.io/mount-utils => k8s.io/mount-utils v0.20.5-rc.0
 
 replace k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.20.2

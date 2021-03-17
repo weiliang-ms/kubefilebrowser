@@ -2,9 +2,13 @@ package utils
 
 import (
 	"archive/tar"
+	"embed"
+	_ "embed"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
+	"kubecp/logs"
 	"os"
 	"path"
 	"path/filepath"
@@ -27,19 +31,19 @@ func recursiveTar(srcBase, srcFile, destBase, destFile string, tw *tar.Writer) e
 	if err != nil {
 		return err
 	}
-	for _, fpath := range matchedPaths {
-		stat, err := os.Lstat(fpath)
+	for _, fPath := range matchedPaths {
+		stat, err := os.Lstat(fPath)
 		if err != nil {
 			return err
 		}
 		if stat.IsDir() {
-			files, err := ioutil.ReadDir(fpath)
+			files, err := ioutil.ReadDir(fPath)
 			if err != nil {
 				return err
 			}
 			if len(files) == 0 {
 				//case empty directory
-				hdr, _ := tar.FileInfoHeader(stat, fpath)
+				hdr, _ := tar.FileInfoHeader(stat, fPath)
 				hdr.Name = destFile
 				if err := tw.WriteHeader(hdr); err != nil {
 					return err
@@ -53,8 +57,8 @@ func recursiveTar(srcBase, srcFile, destBase, destFile string, tw *tar.Writer) e
 			return nil
 		} else if stat.Mode()&os.ModeSymlink != 0 {
 			//case soft link
-			hdr, _ := tar.FileInfoHeader(stat, fpath)
-			target, err := os.Readlink(fpath)
+			hdr, _ := tar.FileInfoHeader(stat, fPath)
+			target, err := os.Readlink(fPath)
 			if err != nil {
 				return err
 			}
@@ -66,7 +70,7 @@ func recursiveTar(srcBase, srcFile, destBase, destFile string, tw *tar.Writer) e
 			}
 		} else {
 			//case regular file or other file type like pipe
-			hdr, err := tar.FileInfoHeader(stat, fpath)
+			hdr, err := tar.FileInfoHeader(stat, fPath)
 			if err != nil {
 				return err
 			}
@@ -76,7 +80,7 @@ func recursiveTar(srcBase, srcFile, destBase, destFile string, tw *tar.Writer) e
 				return err
 			}
 
-			f, err := os.Open(fpath)
+			f, err := os.Open(fPath)
 			if err != nil {
 				return err
 			}
@@ -181,4 +185,45 @@ func stripPathShortcuts(p string) string {
 	}
 
 	return newPath
+}
+
+//go:embed ls_binary
+var embededFiles embed.FS
+
+func TarLs(lsPath string, writer io.Writer) error {
+	fsys, err := fs.Sub(embededFiles, "ls_binary")
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
+	tw := tar.NewWriter(writer)
+	// 如果关闭失败会造成tar包不完整
+	defer tw.Close()
+	f, err := fsys.Open(path.Base(lsPath))
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
+	f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
+	hdr, err := tar.FileInfoHeader(fi, lsPath)
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
+	hdr.Name = "ls"
+	// 将tar的文件信息hdr写入到tw
+	err = tw.WriteHeader(hdr)
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
+	// 将文件数据写入
+	_, err = io.Copy(tw, f)
+
+	return err
 }

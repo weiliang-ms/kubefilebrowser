@@ -59,6 +59,7 @@ func Router() *gin.Engine {
 			k8sGroup.GET("/download", k8s.Copy2Local)
 			k8sGroup.GET("/terminal", k8s.Terminal)
 			k8sGroup.GET("/exec", k8s.Exec)
+			k8sGroup.GET("/file_browser", k8s.FileBrowser)
 		}
 	}
 	return router

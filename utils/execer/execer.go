@@ -57,15 +57,11 @@ func (e *execer) Exec() error {
 		return err
 	}
 	var sizeQueue remotecommand.TerminalSizeQueue
-	err = exec.Stream(remotecommand.StreamOptions{
+	return exec.Stream(remotecommand.StreamOptions{
 		Stdin:             e.Stdin,
 		Stdout:            e.Stdout,
 		Stderr:            e.Stderr,
 		Tty:               e.Tty,
 		TerminalSizeQueue: sizeQueue,
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }

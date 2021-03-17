@@ -10,7 +10,6 @@ import (
 	"kubecp/logs"
 	"kubecp/utils"
 	"kubecp/utils/execer"
-	"strings"
 )
 
 type ExecQuery struct {
@@ -82,17 +81,8 @@ func Exec(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	var out []map[int]string
-	for k, v := range strings.Split(stdout.String(), "\r\n") {
-		if len(v) == 0 {
-			continue
-		}
-		out = append(out, map[int]string{
-			k: v,
-		})
-	}
 	render.SetJson(map[string]interface{}{
 		"err": stderr.String(),
-		"out": out,
+		"out": stdout.String(),
 	})
 }

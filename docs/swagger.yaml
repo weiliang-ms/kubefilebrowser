@@ -384,6 +384,86 @@ paths:
       summary: Container 执行器
       tags:
       - Kubernetes
+  /api/k8s/file_browser:
+    get:
+      description: 容器文件浏览器
+      parameters:
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: path
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: path
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: path
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      - in: query
+        name: container
+        required: true
+        type: string
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: path
+        required: true
+        type: string
+      - in: query
+        name: pods
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.JSONResult'
+      summary: FileBrowser
+      tags:
+      - Kubernetes
   /api/k8s/multi_upload:
     post:
       consumes:

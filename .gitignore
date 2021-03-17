@@ -19,3 +19,5 @@ kubecp
 .idea
 .vscode
 tmp
+
+utils/ls_binary/*
