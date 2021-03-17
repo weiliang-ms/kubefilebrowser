@@ -133,7 +133,7 @@ const statusHtml = `<!DOCTYPE html>
 				url:"/api/k8s/namespace",
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
@@ -156,6 +156,7 @@ const statusHtml = `<!DOCTYPE html>
             <input class="fake-btn" type="button" value="上传到多个pod内所有容器" onclick="javascrtpt:window.location.href='/multi_upload'">&nbsp;
             <input class="fake-btn" type="button" value="从容器内下载" onclick="javascrtpt:window.location.href='/download'">&nbsp;
             <input class="fake-btn" type="button" value="容器在线终端" onclick="javascrtpt:window.location.href='/terminal'">&nbsp;
+            <input class="fake-btn" type="button" value="文件浏览器" onclick="javascrtpt:window.location.href='/file_browser'">&nbsp;
           </div>
         </div>
         <div class="center">
@@ -235,7 +236,7 @@ const statusHtml = `<!DOCTYPE html>
 				url:"/api/k8s/deployment?namespace="+namespace.text(),
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
@@ -274,7 +275,7 @@ const statusHtml = `<!DOCTYPE html>
 				url:"/api/k8s/status?namespace="+namespace.text()+"&deployment="+deploymentStr,
 				dataType: "json",
 				success:function(res) {
-					if (res.code != 200) {
+					if (res.code != 0) {
 						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
                         return;
 					};

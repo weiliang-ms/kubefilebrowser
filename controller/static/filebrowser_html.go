@@ -5,21 +5,18 @@ import (
 	"net/http"
 )
 
-const terminalHtml = `<!DOCTYPE html>
+const fileBrowserHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Container Terminal</title>
+	<title>FileBrowser</title>
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.2/js/select2.min.js"></script>
+    <link rel="stylesheet" href="http://www.yfdou.com/layui/css/layui.css"  media="all">
     <script src="http://lib.h-ui.net/layer/3.1.1/layer.js"></script>
-    <link rel="stylesheet" href="https://www.yfdou.com/xterm/dist/xterm.css" />
-    <script src="https://www.yfdou.com/xterm/dist/xterm.js"></script>
-    <script src="https://www.yfdou.com/xterm/dist/addons/fit/fit.js"></script>
-    <script src="https://www.yfdou.com/xterm/dist/addons/winptyCompat/winptyCompat.js"></script>
-    <script src="https://www.yfdou.com/xterm/dist/addons/webLinks/webLinks.js"></script>
-	<style>
+    <script src="https://www.yfdou.com/layui/layui.js" charset="utf-8"></script>
+    <style>
         a:link {text-decoration:none;}
         p{height:30px;}
         label{height:30px;}
@@ -42,7 +39,7 @@ const terminalHtml = `<!DOCTYPE html>
             background-color:#eee;
             border-radius: 15px;
         }
-		.fake-file-btn {
+        		.fake-file-btn {
 			position: relative;
 			/* display: inline-block; */
 			background: #D0EEFF;
@@ -67,7 +64,7 @@ const terminalHtml = `<!DOCTYPE html>
 			filter: alpha(opacity=0);
 			cursor: pointer
 		}
-	</style>
+    </style>
 </head>
 <body>
   <div id="containers">
@@ -91,44 +88,33 @@ const terminalHtml = `<!DOCTYPE html>
         <label>
           <select id="container" class="short_select"></select>
           <script type="text/javascript">
-            $("#container").select2({
-              placeholder: '请选择容器，最多选择1个',
-              allowClear: true,
-              maximumSelectionLength:1,
-              width: '260px',
-            });
+            $("#container").select2({width: '260px'});
           </script>
 		</label>
-          &nbsp;&nbsp;
-          <label >shell: </label>
+        &nbsp;&nbsp;&nbsp;&nbsp;
         <label>
-          <select id="shell" name="shell">
-            <option value="sh">sh</option>
-            <option value="bash">bash</option>
-            <option value="cmd">cmd</option>
-          </select >
-          <script type="text/javascript">
-            $("#shell").select2({
-              placeholder: '选择',
-              allowClear: true,
-              width: '80px',
-            });
-          </script>
+	      <span class="fake-file-btn" id="fake-btn">
+            打开文件浏览器
+	      </span>
+          &nbsp;&nbsp;&nbsp;&nbsp;
+          <span class="fake-file-btn">
+	        <a href="/">首页</a>
+	      </span>
         </label>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <label>
-	  <span class="fake-file-btn" id="fake-btn">
-		连接
-	  </span>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-      <span class="fake-file-btn">
-	    <a href="/">首页</a>
-	  </span>
-    </label>
     </p>
-    <div id="terminal"></div>
-  </div>
-  <script>
+    <table class="layui-hide" id="demo"></table>
+    <script type="text/html" id="toolbarDemo">
+      <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="removeSelected">批量删除</button>
+        <button class="layui-btn layui-btn-sm" lay-event="isAll">全选</button>
+      </div>
+    </script>
+    <script type="text/html" id="barDemo">
+      <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+      <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    <script>
         $.ajaxSetup({
           layerIndex:-1, //保存当前请求对应的提示框index,用于后面关闭使用
           //在请求显示提示框
@@ -232,74 +218,73 @@ const terminalHtml = `<!DOCTYPE html>
             }
 		  });
 		};
-        function connTerminal() {
-          document.getElementById('terminal').innerHTML = ""
-          // 获取要连接的容器信息
+
+        function getPath(path) {
+          if (path === undefined) {
+            path = "/";
+          };
           var namespace=$("#namespace option:selected");
-          var pod = $("#pod option:selected");
-          var container = $("#container option:selected");
-          var shell = $("#shell option:selected");
-          if (container.text() == "") {
-		  	layer.alert('容器不能为空');
+          if (namespace.text() == "") {
+		  	layer.alert('namespace为空');
 		  	return
 		  }
-          // xterm配置自适应大小插件
-          Terminal.applyAddon(fit);
-          
-          // 这俩插件不知道干嘛的, 用总比不用好
-          Terminal.applyAddon(winptyCompat)
-          Terminal.applyAddon(webLinks)
-          
-          // 创建终端
-          var term = new Terminal();
-          term.open(document.getElementById('terminal'));
-          
-          // 使用fit插件自适应terminal size
-          term.fit();
-          term.winptyCompatInit()
-          term.webLinksInit()
-          
-          // 取得输入焦点
-          term.focus();
-          
-          // 连接websocket
-          ws = new WebSocket("ws://"+window.location.host+"/api/k8s/terminal?namespace=" + namespace.text() + "&pods=" + pod.text() + "&container=" + container.text() + "&shell=" + shell.text());
-          
-          ws.onopen = function(event) {
-            console.log(event)
-            console.log("onopen")
+		  var pod=$("#pod option:selected");
+          if (pod.text() == "") {
+		  	layer.alert('pod为空');
+		  	return
+		  }
+          var container=$("#container option:selected");
+		  if (container.text() == "") {
+		  	layer.alert('container为空');
+		  	return
           }
-          ws.onclose = function(event) {
-              console.log(event)
-              console.log("onclose")
-          }
-          ws.onmessage = function(event) {
-              console.log(event)
-              // 服务端ssh输出, 写到web shell展示
-              term.write(event.data)
-          }
-          ws.onerror = function(event) {
-              console.log(event)
-              console.log("onerror")
-          }
-          
-          // 当浏览器窗口变化时, 重新适配终端
-          window.addEventListener("resize", function () {
-              term.fit()
-          
-              // 把web终端的尺寸term.rows和term.cols发给服务端, 通知sshd调整输出宽度
-              var msg = {type: "resize", rows: term.rows, cols: term.cols}
-              ws.send(JSON.stringify(msg))
-          
-              // console.log(term.rows + "," + term.cols)
-          })
-          
-          // 当向web终端敲入字符时候的回调
-          term.on('data', function(input) {
-              // 写给服务端, 由服务端发给container
-              var msg = {type: "input", input: input}
-              ws.send(JSON.stringify(msg))
-          })
+
+          layui.use('table', function(){
+            var table = layui.table;
+            table.render({
+              elem: '#demo',
+              url:"/api/k8s/file_browser?namespace="+namespace.text()+"&pods="+pod.text()+"&container="+container.text()+"&path="+path,
+              toolbar: '#toolbarDemo',
+              totalRow: true,
+              cellMinWidth: 80,
+              cols: [[ //标题栏
+                {type:'checkbox',fixed: 'left'},
+                {field: 'Name', title: '名称',fixed: 'left', unresize: true, sort: true, totalRowText: '合计'},
+                {field: 'Mode', title: '权限'},
+                {field: 'Size', title: '大小',sort: true},
+                {field: 'ModTime', title: '最后修改时间',sort: true},
+                {field: 'IsDir', title: '是否目录',sort: true,totalRow: true},
+                {fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+              ]]
+            });
+            //工具栏事件
+            table.on('toolbar(demo)', function(obj){
+              var checkStatus = table.checkStatus(obj.config.id);
+              switch(obj.event){
+                case 'getCheckData':
+                  var data = checkStatus.data;
+                  layer.alert(JSON.stringify(data));
+                break;
+                case 'removeSelected':
+                  layer.msg('选中了：'+ data.length + ' 个');
+                break;
+                case 'isAll':
+                  layer.msg(checkStatus.isAll ? '全选': '未全选')
+                break;
+              };
+            });
+            //监听行单击事件（双击事件为：rowDouble）
+            table.on('row(demo)', function(obj){
+              var data = obj.data;
+    
+              layer.alert(JSON.stringify(data), {
+                title: '当前行数据：'
+              });
+    
+              //标注选中样式
+              obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+              });
+          });
         };
         // 页面打开即加载各资源列表
 		getNamespace();
@@ -313,14 +298,15 @@ const terminalHtml = `<!DOCTYPE html>
 			getContainer();
 		});
         $("#fake-btn").unbind("click").click(function() {
-            //console.log("");
-			connTerminal();
+            // layer.alert("打开文件浏览器");
+            getPath("/")
 		});
     </script>
+  </div>
 </body>
-`
+</html>`
 
-func TerminalHtml(c *gin.Context) {
+func FileBrowserHtml(c *gin.Context) {
 	c.Header("Content-Type", "text/html; charset=utf-8")
-	c.String(http.StatusOK, terminalHtml)
+	c.String(http.StatusOK, fileBrowserHtml)
 }

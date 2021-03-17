@@ -124,7 +124,7 @@ func FileBrowser(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	render.SetJson(lsRes)
+	render.SetRes(lsRes, nil, 0)
 }
 
 func (query *FileBrowserQuery) copyLs(lsBinary, lsPath string) error {
@@ -140,7 +140,7 @@ func (query *FileBrowserQuery) copyLs(lsBinary, lsPath string) error {
 			return
 		}
 	}()
-
+	
 	return cp.CopyToPod(lsPath)
 }
 

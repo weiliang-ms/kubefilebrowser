@@ -15,7 +15,6 @@ import (
 	"kubecp/utils/copyer"
 	"mime/multipart"
 	"os"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -462,74 +461,20 @@ func Copy2Local(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
 		return
 	}
-
-	reader, writer := io.Pipe()
-	//prefix := getPrefix(query.DestPath)
-	//prefix = path.Clean(prefix)
-	// remove extraneous path shortcuts - these could occur if a path contained extra "../"
-	// and attempted to navigate beyond "/" in a remote filesystem
-	//prefix = stripPathShortcuts(prefix)
-	//tarFileName := fmt.Sprintf("%s_%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10), strings.ReplaceAll(prefix, "/", "_"))
-	tarFileName := fmt.Sprintf("%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10))
-	filePath := filepath.Join(configs.TmpPath, tarFileName)
-
-	//if err := utils.UnTarAll(r, _tmpSaveDir, prefix); err != nil {
-	//	logs.Error(err)
-	//	render.SetError(utils.CODE_ERR_APP, err)
-	//	return
-	//}
-
-	fw, err := os.Create(filePath)
-	if err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
-		return
-	}
-	defer fw.Close()
-	go func() {
-		_, err = io.Copy(fw, reader)
-		if err != nil {
-			logs.Error(err)
-		}
-	}()
+	fileName := fmt.Sprintf("%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10))
+	c.Header("Access-Control-Expose-Headers", "Content-Disposition")
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Cache-Control", "no-cache")
 
 	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
-	cp.Stdout = writer
-
+	cp.Stdout = render.C.Writer
+	
 	err = cp.CopyFromPod(query.DestPath)
 	if err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-
-	c.Header("X-Redirect", fmt.Sprintf("/%s/%s", configs.Config.DownLoadTmp, tarFileName))
-	render.SetJson(fmt.Sprintf("/%s/%s", configs.Config.DownLoadTmp, tarFileName))
-}
-
-func getPrefix(file string) string {
-	// tar strips the leading '/' if it's there, so we will too
-	return strings.TrimLeft(file, "/")
-}
-
-// stripPathShortcuts removes any leading or trailing "../" from a given path
-func stripPathShortcuts(p string) string {
-	newPath := path.Clean(p)
-	trimmed := strings.TrimPrefix(newPath, "../")
-
-	for trimmed != newPath {
-		newPath = trimmed
-		trimmed = strings.TrimPrefix(newPath, "../")
-	}
-
-	// trim leftover {".", ".."}
-	if newPath == "." || newPath == ".." {
-		newPath = ""
-	}
-
-	if len(newPath) > 0 && string(newPath[0]) == "/" {
-		return newPath[1:]
-	}
-
-	return newPath
 }

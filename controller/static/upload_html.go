@@ -147,7 +147,7 @@ const uploadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/namespace",
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message);
 					}
 					var data = res.data.items;
@@ -178,7 +178,7 @@ const uploadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/pods?namespace="+namespace.text(),
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message);
 					}
 					var data = res.data.items;
@@ -209,7 +209,7 @@ const uploadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/pods?namespace="+namespace.text()+"&pod="+pod.text(),
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message);
 					}
 					var data = res.data.spec.containers;
@@ -251,7 +251,7 @@ const uploadHtml = `<!DOCTYPE html>
 				processData: false,
 				contentType: false,
 				success: function(res) {
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message);
 					}else{
                         $("#fileFolderOne").empty();
@@ -302,7 +302,7 @@ const uploadHtml = `<!DOCTYPE html>
 				processData: false,
 				contentType: false,
 				success: function(res) {
-					if (res.code != 200) {
+					if (res.code != 0) {
 						layer.alert(res.info.message);
 					}else{
                         $("#fileFolderMore").empty();

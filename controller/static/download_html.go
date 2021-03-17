@@ -165,7 +165,7 @@ const downloadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/namespace",
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
@@ -195,7 +195,7 @@ const downloadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/pods?namespace="+namespace.text(),
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.items;
@@ -226,7 +226,7 @@ const downloadHtml = `<!DOCTYPE html>
 				url:"/api/k8s/pods?namespace="+namespace.text()+"&pod="+pod.text(),
 				dataType: "json",
 				success:function(res){
-					if (res.code != 200) {
+					if (res.code != 0) {
 						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}
 					var data = res.data.spec.containers;
@@ -289,7 +289,7 @@ const downloadHtml = `<!DOCTYPE html>
 				processData: false,
 				contentType: false,
 				success : function(res){
-					if (res.code!=200) {
+					if (res.code!=0) {
 						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 					}else{
 						console.log('收到预期的json数据');

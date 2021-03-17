@@ -59,7 +59,7 @@ func Terminal(c *gin.Context) {
 
 	wsConn, err := utils.InitWebsocket(c.Writer, c.Request)
 	if utils.WsHandleError(wsConn, err) {
-		wsConn.WsClose()
+		logs.Error(err)
 		return
 	}
 	defer wsConn.WsClose()
@@ -73,17 +73,19 @@ func Terminal(c *gin.Context) {
 	SshSPDYExecutor := webTerminal.NewSshSPDYExecutor()
 	executor, err := remotecommand.NewSPDYExecutor(configs.KuBeResConf, "POST", SshSPDYExecutor.URL())
 	if utils.WsHandleError(wsConn, err) {
-		wsConn.WsClose()
+		logs.Error(err)
 		return
 	}
+	
 	handler := &kube.StreamHandler{WsConn: wsConn, ResizeEvent: make(chan remotecommand.TerminalSize)}
-	if utils.WsHandleError(wsConn, executor.Stream(remotecommand.StreamOptions{
+	err = executor.Stream(remotecommand.StreamOptions{
 		Stdin:             handler,
 		Stdout:            handler,
 		Stderr:            handler,
 		Tty:               true,
 		TerminalSizeQueue: handler,
-	})) {
-		wsConn.WsClose()
+	})
+	if utils.WsHandleError(wsConn, err) {
+		logs.Error(err)
 	}
 }

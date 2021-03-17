@@ -23,11 +23,11 @@ type Info struct {
 }
 
 func NewRes(data interface{}, err error, code int) *JSONResult {
-	if code == 0 {
-		code = 200
+	if code == 200 {
+		code = 0
 	}
 	codeMsg := ""
-	if configs.Config.RunMode == "release" && code != 200 {
+	if configs.Config.RunMode == "release" && code != 0 {
 		codeMsg = utils.GetMsg(code)
 	}
 

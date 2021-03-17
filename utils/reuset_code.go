@@ -1,7 +1,7 @@
 package utils
 
 const (
-	CODE_SUCCESS = 200
+	CODE_SUCCESS = 0
 	CODE_ERR_APP = iota + 1000
 	CODE_ERR_MSG
 	CODE_ERR_PARAM

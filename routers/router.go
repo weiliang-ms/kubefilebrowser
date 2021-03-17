@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
+	"github.com/gin-contrib/cors"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"kubecp/configs"
 	"kubecp/controller"
@@ -33,7 +34,7 @@ func Router() *gin.Engine {
 	router := gin.New()
 	// 设置文件上传大小限制为8G
 	router.MaxMultipartMemory = 32 << 20
-	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression))
+	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression), cors.Default())
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.StaticFS("/tmp", gin.Dir(utils.RootPath()+"tmp/", true))
 	staticGroup := router.Group("/")
@@ -43,6 +44,7 @@ func Router() *gin.Engine {
 		staticGroup.GET("/multi_upload", static.MultiUploadHtml)
 		staticGroup.GET("/download", static.DownloadHtml)
 		staticGroup.GET("/terminal", static.TerminalHtml)
+		staticGroup.GET("/file_browser", static.FileBrowserHtml)
 	}
 
 	apiGroup := router.Group("/api", handlersMiddleware())

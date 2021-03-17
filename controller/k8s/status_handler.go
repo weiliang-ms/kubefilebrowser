@@ -97,12 +97,12 @@ func PodStatus(c *gin.Context) {
 		}
 	}
 	var podList []coreV1.Pod
-	var dWg sync.WaitGroup
+	var wg sync.WaitGroup
 	for _, d := range deployments {
-		dWg.Add(1)
+		wg.Add(1)
 		deployment := d
 		go func(wg *sync.WaitGroup, deployment *appsV1.Deployment) {
-			defer dWg.Done()
+			defer wg.Done()
 			rsList, err := deploymentutil.ListReplicaSets(deployment, deploymentutil.RsListFromClient(configs.RestClient.AppsV1()))
 			if err != nil {
 				logs.Error(err)
@@ -117,15 +117,15 @@ func PodStatus(c *gin.Context) {
 				return
 			}
 			podList = append(podList, pods.Items...)
-		}(&dWg, &deployment)
+		}(&wg, &deployment)
 	}
-	dWg.Wait()
+	wg.Wait()
 
 	var resPods []ResPods
-	var wg sync.WaitGroup
-	for _, pod := range podList {
+	for _, p := range podList {
+		pod := p
 		wg.Add(1)
-		go func(wg *sync.WaitGroup, pod coreV1.Pod) {
+		go func(wg *sync.WaitGroup, pod *coreV1.Pod) {
 			defer wg.Done()
 			var containerMetrics = make(map[string]map[string]string)
 			podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
@@ -143,33 +143,33 @@ func PodStatus(c *gin.Context) {
 				}
 			}
 
-			var initContainers []ResContainer
-			if len(pod.Spec.InitContainers) > 0 {
-				for _k, _v := range pod.Status.ContainerStatuses {
-					var state string
-					if _v.Ready {
-						state = "Running"
-					} else {
-						state = "Error"
-					}
-					_i := strings.Split(_v.Image, ":")
-					_container := ResContainer{
-						ID:              _k + 1,
-						Name:            _v.Name,
-						Image:           _v.Image,
-						State:           state,
-						Restart:         _v.RestartCount,
-						ImagePullPolicy: fmt.Sprint(pod.Spec.InitContainers[_k].ImagePullPolicy),
-						Version:         _i[len(_i)-1],
-					}
-					metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
-					if ok {
-						_container.Cpu = metrics["cpu"]
-						_container.Ram = metrics["mem"]
-					}
-					initContainers = append(initContainers, _container)
-				}
-			}
+			//var initContainers []ResContainer
+			//if len(pod.Spec.InitContainers) > 0 {
+			//	for _k, _v := range pod.Status.ContainerStatuses {
+			//		var state string
+			//		if _v.Ready {
+			//			state = "Running"
+			//		} else {
+			//			state = "Error"
+			//		}
+			//		_i := strings.Split(_v.Image, ":")
+			//		_container := ResContainer{
+			//			ID:              _k + 1,
+			//			Name:            _v.Name,
+			//			Image:           _v.Image,
+			//			State:           state,
+			//			Restart:         _v.RestartCount,
+			//			ImagePullPolicy: fmt.Sprint(pod.Spec.InitContainers[_k].ImagePullPolicy),
+			//			Version:         _i[len(_i)-1],
+			//		}
+			//		metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
+			//		if ok {
+			//			_container.Cpu = metrics["cpu"]
+			//			_container.Ram = metrics["mem"]
+			//		}
+			//		initContainers = append(initContainers, _container)
+			//	}
+			//}
 			var container []ResContainer
 			if len(pod.Spec.Containers) > 0 {
 				for _k, _v := range pod.Status.ContainerStatuses {
@@ -199,10 +199,10 @@ func PodStatus(c *gin.Context) {
 			}
 			resPods = append(resPods, ResPods{
 				PodName:        pod.Name,
-				InitContainers: initContainers,
+				//InitContainers: initContainers,
 				Containers:     container,
 			})
-		}(&wg, pod)
+		}(&wg, &pod)
 	}
 	wg.Wait()
 	render.SetJson(resPods)
