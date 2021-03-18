@@ -465,12 +465,13 @@ func Copy2Local(c *gin.Context) {
 	c.Header("Access-Control-Expose-Headers", "Content-Disposition")
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("X-File-Name", fileName)
 	c.Header("Content-Transfer-Encoding", "binary")
 	c.Header("Cache-Control", "no-cache")
 
 	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
 	cp.Stdout = render.C.Writer
-	
+
 	err = cp.CopyFromPod(query.DestPath)
 	if err != nil {
 		logs.Error(err)

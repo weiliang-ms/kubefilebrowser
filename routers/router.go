@@ -44,7 +44,6 @@ func Router() *gin.Engine {
 		staticGroup.GET("/multi_upload", static.MultiUploadHtml)
 		staticGroup.GET("/download", static.DownloadHtml)
 		staticGroup.GET("/terminal", static.TerminalHtml)
-		staticGroup.GET("/file_browser", static.FileBrowserHtml)
 	}
 
 	apiGroup := router.Group("/api", handlersMiddleware())

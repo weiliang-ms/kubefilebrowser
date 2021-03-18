@@ -5,15 +5,14 @@ const (
 	CODE_ERR_APP = iota + 1000
 	CODE_ERR_MSG
 	CODE_ERR_PARAM
-	CODE_ERR_TOKEN
 	CODE_ERR_NO_PRIV
 )
 
 var MsgFlags = map[int]string{
+	CODE_ERR_APP:     "内部错误",
 	CODE_SUCCESS:     "成功",
 	CODE_ERR_MSG:     "未知错误",
 	CODE_ERR_PARAM:   "参数错误",
-	CODE_ERR_TOKEN:   "没有TOKEN",
 	CODE_ERR_NO_PRIV: "沒有权限",
 }
 

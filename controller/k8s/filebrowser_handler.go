@@ -87,7 +87,7 @@ func FileBrowser(c *gin.Context) {
 	if !isUnix {
 		lsPath = "/ls_windows_amd64.exe"
 	}
-	lsResByte, err := query.exec(command)
+	resByte, err := query.exec(command)
 	if err != nil {
 		logs.Error(err)
 		if strings.Contains(err.Error(), "ls") ||
@@ -107,7 +107,7 @@ func FileBrowser(c *gin.Context) {
 					return
 				}
 			}
-			lsResByte, err = query.exec(command)
+			resByte, err = query.exec(command)
 			if err != nil {
 				logs.Error(err)
 				render.SetError(utils.CODE_ERR_APP, err)
@@ -118,13 +118,13 @@ func FileBrowser(c *gin.Context) {
 			return
 		}
 	}
-	var lsRes []utils.File
-	if err := json.Unmarshal(lsResByte, &lsRes); err != nil {
+	var res []utils.File
+	if err := json.Unmarshal(resByte, &res); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	render.SetRes(lsRes, nil, 0)
+	render.SetRes(res, nil, 0)
 }
 
 func (query *FileBrowserQuery) copyLs(lsBinary, lsPath string) error {

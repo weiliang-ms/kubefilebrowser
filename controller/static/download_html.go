@@ -282,25 +282,30 @@ const downloadHtml = `<!DOCTYPE html>
 				layer.alert('容器名称为空', {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
 				return
 			}
-			$.ajax({
-				type: 'GET',
-				url: "/api/k8s/download?namespace="+namespace.text()+"&pod_name="+pod.text()+"&container_name="+container.text()+"&dest_path="+dest_path,
-				timeout: 300 * 1000,
-				processData: false,
-				contentType: false,
-				success : function(res){
-					if (res.code!=0) {
-						 layer.alert(res.info.message, {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
-					}else{
-						console.log('收到预期的json数据');
-						location.href = res.data;
-					}
-					
-				},
-                error: function() {
-                     layer.alert("错误", {skin: 'layui-layer-molv',closeBtn: 1,shadeClose: true,anim: 1,title:"提示",icon: 6});
-                }
-			});
+			var url = "/api/k8s/download?namespace="+namespace.text()+"&pod_name="+pod.text()+"&container_name="+container.text()+"&dest_path="+dest_path;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
+            xhr.responseType = "blob";    // 返回类型blob
+            xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+            // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
+            xhr.onload = function () {
+              // 请求完成
+              if (this.status === 200) {
+                // 返回200
+                let content = xhr.response;
+                let eLink = document.createElement('a');
+                var fileName = this.getResponseHeader('X-File-Name');
+                eLink.download = fileName;
+                eLink.style.display = 'none';
+                let blob = new Blob([content]);
+                eLink.href = URL.createObjectURL(blob);
+                document.body.appendChild(eLink);
+                eLink.click();
+                document.body.removeChild(eLink);
+              }
+            };
+            // 发送ajax请求
+            xhr.send()
 		};
 
 		// 页面打开即加载各资源列表
