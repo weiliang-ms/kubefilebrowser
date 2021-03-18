@@ -40,6 +40,10 @@ for i in $osList; do
   fi
 done
 
+# build web
+cd web && yarn run build && cd ../
+
+# build server
 name="kubecp"
 version="v1.3-beta"
 osList="linux windows darwin"

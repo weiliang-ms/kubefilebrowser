@@ -7,7 +7,7 @@ import (
 
 // 从pod内拷贝到io.Writer
 func (c *copyer) CopyFromPod(dest []string) error {
-	c.Command = append([]string{"tar", "cf", "-"}, dest...)
+	c.Command = append([]string{"tar", "cpPf", "-"}, dest...)
 	attempts := 3
 	attempt := 0
 	for attempt < attempts {

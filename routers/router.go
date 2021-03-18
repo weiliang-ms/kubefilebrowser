@@ -1,10 +1,10 @@
 package routers
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
-	"github.com/gin-contrib/cors"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"kubecp/configs"
 	"kubecp/controller"
@@ -14,6 +14,7 @@ import (
 	"kubecp/logs"
 	"kubecp/utils"
 	"kubecp/utils/denyip"
+	"net/http"
 )
 
 var (
@@ -36,10 +37,18 @@ func Router() *gin.Engine {
 	router.MaxMultipartMemory = 32 << 20
 	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression), cors.Default())
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.StaticFS("/tmp", gin.Dir(utils.RootPath()+"tmp/", true))
-	staticGroup := router.Group("/")
+	
+	// 静态资源
+	router.StaticFile("/", "static/index.html")
+	router.Static("/static", "static")
+	router.LoadHTMLFiles("static/index.html")
+	router.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
+	
+	staticGroup := router.Group("/test")
 	{
-		staticGroup.GET("/", static.StatusHtml)
+		staticGroup.GET("/test", static.StatusHtml)
 		staticGroup.GET("/upload", static.UploadHtml)
 		staticGroup.GET("/multi_upload", static.MultiUploadHtml)
 		staticGroup.GET("/download", static.DownloadHtml)

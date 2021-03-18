@@ -12,7 +12,7 @@ func (c *copyer) CopyToPod(dest string) error {
 	if c.NoPreserve {
 		c.Command = []string{"tar", "--no-same-permissions", "--no-same-owner", "-xmf", "-"}
 	} else {
-		c.Command = []string{"tar", "-xmf", "-"}
+		c.Command = []string{"tar", "-xmpf", "-"}
 	}
 	destDir := path.Dir(dest)
 	if len(destDir) > 0 {
