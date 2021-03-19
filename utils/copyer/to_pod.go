@@ -1,9 +1,8 @@
 package copyer
 
 import (
-	"fmt"
+	"kubecp/logs"
 	"path"
-	"time"
 )
 
 // 从io.Writer拷贝到pod
@@ -18,27 +17,11 @@ func (c *copyer) CopyToPod(dest string) error {
 	if len(destDir) > 0 {
 		c.Command = append(c.Command, "-C", destDir)
 	}
-	// 重试三次
-	attempts := 3
-	attempt := 0
-	for attempt < attempts {
-		attempt++
-		stderr, err := c.Exec()
-		if len(stderr) != 0 {
-			if attempt == attempts {
-				return fmt.Errorf("STDERR: " + string(stderr))
-			}
-			time.Sleep(time.Duration(attempt) * time.Second)
-			continue
-		}
-		if err != nil {
-			if attempt == attempts {
-				return err
-			}
-			time.Sleep(time.Duration(attempt) * time.Second)
-			continue
-		}
-		return nil
+
+	stderr, err := c.Exec()
+	if err != nil {
+		return err
 	}
+	logs.Warn(string(stderr))
 	return nil
 }

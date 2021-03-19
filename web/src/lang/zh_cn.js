@@ -29,6 +29,7 @@ export default {
     'operate_success': '操作成功',
     'operate': '操作',
     'os': '系统类型',
+    'please_input_dest_path': '请输入目标路径',
     'please_select_container': '请选择Container',
     'please_select_deployment': '请选择Deployment',
     'please_select_namespace': '请选择Namespace',
@@ -42,4 +43,6 @@ export default {
     'terminal': '终端命令行',
     'unknown_error': '未知错误',
     'upload': '单Pod文件上传',
+    'upload_dir': '上传文件',
+    'upload_file': '上传文件夹',
 }
