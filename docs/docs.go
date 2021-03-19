@@ -117,13 +117,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -253,13 +253,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -572,13 +572,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -693,13 +693,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -782,13 +782,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -852,13 +852,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -957,13 +957,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1066,13 +1066,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1183,13 +1183,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1310,13 +1310,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1324,7 +1324,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "controller.Info": {
+        "apis.Info": {
             "type": "object",
             "properties": {
                 "message": {
@@ -1337,7 +1337,7 @@ var doc = `{
                 }
             }
         },
-        "controller.JSONResult": {
+        "apis.JSONResult": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1348,7 +1348,7 @@ var doc = `{
                     "type": "object"
                 },
                 "info": {
-                    "$ref": "#/definitions/controller.Info"
+                    "$ref": "#/definitions/apis.Info"
                 }
             }
         }
@@ -1370,8 +1370,8 @@ var SwaggerInfo = swaggerInfo{
 	Host:        "",
 	BasePath:    "/",
 	Schemes:     []string{},
-	Title:       "KubeCp Swagger",
-	Description: "网页版kubectl cp",
+	Title:       "KubeFileBrowser Swagger",
+	Description: "Kubernetes FileBrowser",
 }
 
 type s struct{}

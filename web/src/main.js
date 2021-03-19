@@ -7,7 +7,6 @@ import router from './router'
 import i18n from './lang'
 import util from './lib/util.js'
 import data from './lib/data.js'
-import {directives} from './lib/directives.js'
 import "xterm/dist/xterm.css";
 import "xterm/dist/xterm.js";
 import { Terminal } from 'xterm';
@@ -24,7 +23,7 @@ if (localeLang.indexOf('en') !== 0) {
 moment.locale(localeLang)
 // Vue.config.debug = true;
 Vue.config.productionTip = false
-Vue.use(ElementUI, directives, Terminal);
+Vue.use(ElementUI, Terminal);
 
 new Vue({
     i18n,

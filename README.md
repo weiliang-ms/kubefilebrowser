@@ -19,25 +19,29 @@ kubernetes container file browser
 
 ```text
 [GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
- - using env:   export GIN_MODE=release
- - using code:  gin.SetMode(gin.ReleaseMode)
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
 
-[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (4 handlers)
-[GIN-debug] GET    /tmp/*filepath            --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
-[GIN-debug] HEAD   /tmp/*filepath            --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
-[GIN-debug] GET    /                         --> kubecp/controller/static.StatusHtml (4 handlers)
-[GIN-debug] GET    /upload                   --> kubecp/controller/static.UploadHtml (4 handlers)
-[GIN-debug] GET    /multi_upload             --> kubecp/controller/static.MultiUploadHtml (4 handlers)
-[GIN-debug] GET    /download                 --> kubecp/controller/static.DownloadHtml (4 handlers)
-[GIN-debug] GET    /api/k8s/namespace        --> kubecp/controller/k8s.ListNamespace (5 handlers)
-[GIN-debug] GET    /api/k8s/deployment       --> kubecp/controller/k8s.ListNamespaceAllDeployment (5 handlers)
-[GIN-debug] GET    /api/k8s/pods             --> kubecp/controller/k8s.ListNamespaceAllPods (5 handlers)
-[GIN-debug] GET    /api/k8s/status           --> kubecp/controller/k8s.PodStatus (5 handlers)
-[GIN-debug] POST   /api/k8s/upload           --> kubecp/controller/k8s.Copy2Container (5 handlers)
-[GIN-debug] POST   /api/k8s/multi_upload     --> kubecp/controller/k8s.MultiCopy2Container (5 handlers)
-[GIN-debug] GET    /api/k8s/download         --> kubecp/controller/k8s.Copy2Local (5 handlers)
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (5 handlers)
+[GIN-debug] GET    /                         --> github.com/gin-gonic/gin.(*RouterGroup).StaticFile.func1 (5 handlers)
+[GIN-debug] HEAD   /                         --> github.com/gin-gonic/gin.(*RouterGroup).StaticFile.func1 (5 handlers)
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (5 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (5 handlers)
+[GIN-debug] GET    /api/k8s/namespace        --> kubefilebrowser/apis/k8s.ListNamespace (6 handlers)
+[GIN-debug] GET    /api/k8s/deployment       --> kubefilebrowser/apis/k8s.ListNamespaceAllDeployment (6 handlers)
+[GIN-debug] GET    /api/k8s/pods             --> kubefilebrowser/apis/k8s.ListNamespaceAllPods (6 handlers)
+[GIN-debug] GET    /api/k8s/status           --> kubefilebrowser/apis/k8s.PodStatus (6 handlers)
+[GIN-debug] POST   /api/k8s/upload           --> kubefilebrowser/apis/k8s.Copy2Container (6 handlers)
+[GIN-debug] POST   /api/k8s/multi_upload     --> kubefilebrowser/apis/k8s.MultiCopy2Container (6 handlers)
+[GIN-debug] GET    /api/k8s/download         --> kubefilebrowser/apis/k8s.Copy2Local (6 handlers)
+[GIN-debug] GET    /api/k8s/terminal         --> kubefilebrowser/apis/k8s.Terminal (6 handlers)
+[GIN-debug] GET    /api/k8s/exec             --> kubefilebrowser/apis/k8s.Exec (6 handlers)
+[GIN-debug] GET    /api/k8s/file_browser     --> kubefilebrowser/apis/k8s.FileBrowser (6 handlers)
 ```
+
+## Index.html
+![kubefilebrowser_index_html](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/index_html.jpg)
 
 ## Swagger
 
-![kubecp swagger image](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/swagger.jpg)
+![kubefilebrowser swagger image](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/swagger.jpg)

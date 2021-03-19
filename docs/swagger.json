@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "网页版kubectl cp",
-        "title": "KubeCp Swagger",
+        "description": "Kubernetes FileBrowser",
+        "title": "KubeFileBrowser Swagger",
         "contact": {},
         "version": "1.0"
     },
@@ -101,13 +101,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -237,13 +237,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -556,13 +556,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -677,13 +677,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -766,13 +766,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -836,13 +836,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -941,13 +941,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1050,13 +1050,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1167,13 +1167,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1294,13 +1294,13 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.JSONResult"
+                            "$ref": "#/definitions/apis.JSONResult"
                         }
                     }
                 }
@@ -1308,7 +1308,7 @@
         }
     },
     "definitions": {
-        "controller.Info": {
+        "apis.Info": {
             "type": "object",
             "properties": {
                 "message": {
@@ -1321,7 +1321,7 @@
                 }
             }
         },
-        "controller.JSONResult": {
+        "apis.JSONResult": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1332,7 +1332,7 @@
                     "type": "object"
                 },
                 "info": {
-                    "$ref": "#/definitions/controller.Info"
+                    "$ref": "#/definitions/apis.Info"
                 }
             }
         }

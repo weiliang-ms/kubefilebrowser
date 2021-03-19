@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  controller.Info:
+  apis.Info:
     properties:
       message:
         example: 消息
@@ -9,7 +9,7 @@ definitions:
         example: true
         type: boolean
     type: object
-  controller.JSONResult:
+  apis.JSONResult:
     properties:
       code:
         example: 0
@@ -17,12 +17,12 @@ definitions:
       data:
         type: object
       info:
-        $ref: '#/definitions/controller.Info'
+        $ref: '#/definitions/apis.Info'
     type: object
 info:
   contact: {}
-  description: 网页版kubectl cp
-  title: KubeCp Swagger
+  description: Kubernetes FileBrowser
+  title: KubeFileBrowser Swagger
   version: "1.0"
 paths:
   /api/k8s/deployment:
@@ -81,11 +81,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: ListNamespaceAllDeployment
       tags:
       - Kubernetes
@@ -171,11 +171,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: Copy2Local
       tags:
       - Kubernetes
@@ -376,11 +376,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: Container 执行器
       tags:
       - Kubernetes
@@ -456,11 +456,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: FileBrowser
       tags:
       - Kubernetes
@@ -515,11 +515,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: MultiCopy2Container
       tags:
       - Kubernetes
@@ -558,11 +558,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: ListNamespace
       tags:
       - Kubernetes
@@ -622,11 +622,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: ListNamespaceAllSource
       tags:
       - Kubernetes
@@ -690,11 +690,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: PodStatus
       tags:
       - Kubernetes
@@ -766,11 +766,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: Container terminal
       tags:
       - Kubernetes
@@ -849,11 +849,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/controller.JSONResult'
+            $ref: '#/definitions/apis.JSONResult'
       summary: Copy2Container
       tags:
       - Kubernetes

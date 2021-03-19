@@ -29,11 +29,10 @@ type Configure struct {
 	HTTPAddr    string   `envconfig:"HTTP_ADDR" default:"0.0.0.0"`
 	LogLevel    string   `envconfig:"LOG_LEVEL" default:"debug"`
 	IPWhiteList []string `envconfig:"IP_WHITE_LIST" default:"*"`
-	DownLoadTmp string   `envconfig:"DOWNLOAD_TMP" default:"tmp"`
 }
 
 var (
-	TmpPath       string
+	TmpPath       = os.TempDir()
 	Config        Configure
 	RestClient    *kubernetes.Clientset
 	KuBeResConf   *rest.Config
@@ -60,14 +59,6 @@ func init() {
 	err := envconfig.Process("", &Config)
 	if err != nil {
 		logs.Fatal(err)
-	}
-
-	TmpPath = filepath.Join(utils.RootPath(), Config.DownLoadTmp)
-	if !utils.FileOrPathExist(TmpPath) {
-		err := os.MkdirAll(TmpPath, os.ModePerm)
-		if err != nil {
-			logs.Fatal("无法创建文件夹", err)
-		}
 	}
 
 	logs.SetLogLevel(Config.LogLevel)
