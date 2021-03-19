@@ -1,6 +1,6 @@
-# kubecp
+# kubefileborwser
 
-网页版kubectl cp
+kubernetes container file browser
 
 ## 启动可选环境变量
 
@@ -40,4 +40,4 @@
 
 ## Swagger
 
-![kubecp swagger image](https://raw.githubusercontent.com/xmapst/kubecp/main/swagger.jpg)
+![kubecp swagger image](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/swagger.jpg)
