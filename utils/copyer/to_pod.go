@@ -1,6 +1,7 @@
 package copyer
 
 import (
+	"fmt"
 	"kubecp/logs"
 	"path"
 )
@@ -20,7 +21,7 @@ func (c *copyer) CopyToPod(dest string) error {
 
 	stderr, err := c.Exec()
 	if err != nil {
-		return err
+		return fmt.Errorf(err.Error(), string(stderr))
 	}
 	logs.Warn(string(stderr))
 	return nil
