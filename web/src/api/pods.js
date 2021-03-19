@@ -1,5 +1,5 @@
 import {get} from '@/lib/fetch.js'
 
-export function Pods(params) {
+export function GetPods(params) {
     return get('/k8s/pods', params)
 }

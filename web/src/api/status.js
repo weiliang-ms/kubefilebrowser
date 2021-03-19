@@ -1,5 +1,5 @@
 import {get} from '@/lib/fetch.js'
 
-export function Status(params) {
+export function GetStatus(params) {
     return get('/k8s/status', params)
 }

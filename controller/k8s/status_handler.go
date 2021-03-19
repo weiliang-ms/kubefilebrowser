@@ -41,6 +41,7 @@ type ResContainer struct {
 	Cpu             string `json:"cpu,omitempty"`
 	Ram             string `json:"ram,omitempty"`
 	Version         string `json:"version,omitempty"`
+	Os              string `json:"os,omitempty"`
 }
 
 // @Summary PodStatus
@@ -127,6 +128,13 @@ func PodStatus(c *gin.Context) {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, pod *coreV1.Pod) {
 			defer wg.Done()
+			var isUnix = true
+			for _, value := range pod.Spec.NodeSelector {
+				if strings.Contains(value, "windows") {
+					isUnix = false
+					break
+				}
+			}
 			var containerMetrics = make(map[string]map[string]string)
 			podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
 				Get(context.Background(), pod.Name, metaV1.GetOptions{})
@@ -194,13 +202,18 @@ func PodStatus(c *gin.Context) {
 						_container.Cpu = metrics["cpu"]
 						_container.Ram = metrics["mem"]
 					}
+					if isUnix {
+						_container.Os = "unix"
+					}else {
+						_container.Os = "windows"
+					}
 					container = append(container, _container)
 				}
 			}
 			resPods = append(resPods, ResPods{
-				PodName:        pod.Name,
+				PodName: pod.Name,
 				//InitContainers: initContainers,
-				Containers:     container,
+				Containers: container,
 			})
 		}(&wg, &pod)
 	}
