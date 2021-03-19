@@ -19,7 +19,7 @@
         <el-option v-for="item in containers" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>
       &nbsp;&nbsp;
-      <el-input v-model="destPath" style="width: 50px" size="medium" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
+      <el-input v-model="destPath" style="width: 217px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
       &nbsp;&nbsp;
       <el-button @click.native="uploadFile">{{ $t('upload_file') }}</el-button>
       &nbsp;&nbsp;
@@ -52,7 +52,7 @@ export default {
           this.namespaces = []
           this.pod = ""
           this.pods = []
-          this.container = ""
+          this.container = []
           this.containers = []
           this.shell = ""
           var data = res.items
@@ -70,7 +70,7 @@ export default {
           var pods = []
           this.pod = ""
           this.pods = []
-          this.container = ""
+          this.container = []
           this.containers = []
           var data = res.items
           for (var key in data) {
@@ -88,7 +88,7 @@ export default {
         if (res) {
           console.log(res)
           var containers = []
-          this.container = ""
+          this.container = []
           this.containers = []
           var data = res.spec.containers
           for (var key in data) {

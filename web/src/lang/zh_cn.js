@@ -14,6 +14,7 @@ export default {
     'deployment': "无状态集",
     'description': '描述信息',
     'download': '文件/目录下载',
+    'download_file': '下载',
     'edit': '编辑',
     'enter': '确定',
     'filebrowser': '文件浏览器',
