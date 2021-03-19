@@ -1,4 +1,4 @@
-module kubecp
+module kubefilebrowser
 
 go 1.16
 
@@ -78,3 +78,7 @@ replace k8s.io/metrics => k8s.io/metrics v0.20.2
 replace k8s.io/mount-utils => k8s.io/mount-utils v0.20.5-rc.0
 
 replace k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.20.2
+
+replace k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.20.2
+
+replace k8s.io/sample-controller => k8s.io/sample-controller v0.20.2

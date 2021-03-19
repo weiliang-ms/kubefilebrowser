@@ -3,7 +3,7 @@ package utils
 import (
 	"errors"
 	"github.com/gorilla/websocket"
-	"kubecp/logs"
+	"kubefilebrowser/utils/logs"
 	"net/http"
 	"sync"
 	"time"

@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
-	"kubecp/logs"
+	"kubefilebrowser/utils/logs"
 )
 
 type execer struct {

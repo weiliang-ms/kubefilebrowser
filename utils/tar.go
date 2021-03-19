@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"kubecp/logs"
+	"kubefilebrowser/utils/logs"
 	"os"
 	"path"
 	"path/filepath"

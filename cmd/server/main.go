@@ -1,23 +1,23 @@
 package main
 
 import (
-    "context"
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"kubecp/configs"
-	_ "kubecp/configs"
-	"kubecp/logs"
-	"kubecp/routers"
-	_ "kubecp/routers"
+	"kubefilebrowser/configs"
+	_ "kubefilebrowser/configs"
+	"kubefilebrowser/routers"
+	_ "kubefilebrowser/routers"
+	"kubefilebrowser/utils/logs"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 )
 
-// @title KubeCp Swagger
+// @title KubeFileBrowser Swagger
 // @version 1.0
-// @description 网页版kubectl cp
+// @description Kubernetes FileBrowser
 // @BasePath /
 // @query.collection.format multi
 func main() {

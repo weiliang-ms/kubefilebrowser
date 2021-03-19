@@ -9,10 +9,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	deploymentutil "k8s.io/kubernetes/pkg/controller/deployment/util"
-	"kubecp/configs"
-	"kubecp/controller"
-	"kubecp/logs"
-	"kubecp/utils"
+	"kubefilebrowser/apis"
+	"kubefilebrowser/configs"
+	"kubefilebrowser/utils"
+	"kubefilebrowser/utils/logs"
 	"strings"
 	"sync"
 )
@@ -51,11 +51,11 @@ type ResContainer struct {
 // @Param deployment query StatusQuery false "deployment"
 // @Param field_selector query StatusQuery false "field_selector"
 // @Param label_selector query StatusQuery false "label_selector"
-// @Success 200 {object} controller.JSONResult
-// @Failure 500 {object} controller.JSONResult
+// @Success 200 {object} apis.JSONResult
+// @Failure 500 {object} apis.JSONResult
 // @Router /api/k8s/status [get]
 func PodStatus(c *gin.Context) {
-	render := controller.Gin{C: c}
+	render := apis.Gin{C: c}
 	var statusQuery StatusQuery
 	if err := c.ShouldBindQuery(&statusQuery); err != nil {
 		logs.Error(err)
@@ -204,7 +204,7 @@ func PodStatus(c *gin.Context) {
 					}
 					if isUnix {
 						_container.Os = "unix"
-					}else {
+					} else {
 						_container.Os = "windows"
 					}
 					container = append(container, _container)

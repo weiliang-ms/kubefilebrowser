@@ -2,7 +2,7 @@ package copyer
 
 import (
 	"fmt"
-	"kubecp/logs"
+	"kubefilebrowser/utils/logs"
 	"path"
 )
 

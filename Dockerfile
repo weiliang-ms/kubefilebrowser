@@ -1,4 +1,4 @@
-#docker build --network host --rm --build-arg APP_ROOT=/go/src/kubecp -t kubecp:latest -f Dockerfile .
+#docker build --network host --rm --build-arg APP_ROOT=/go/src/kubefilebrowser -t kubefilebrowser:latest -f Dockerfile .
 #0 ----------------------------
 FROM golang:1.15.3
 ARG  APP_ROOT

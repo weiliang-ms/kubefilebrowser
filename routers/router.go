@@ -6,14 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"kubecp/configs"
-	"kubecp/controller"
-	"kubecp/controller/k8s"
-	"kubecp/controller/static"
-	_ "kubecp/docs"
-	"kubecp/logs"
-	"kubecp/utils"
-	"kubecp/utils/denyip"
+	"kubefilebrowser/apis"
+	"kubefilebrowser/apis/k8s"
+	"kubefilebrowser/configs"
+	_ "kubefilebrowser/docs"
+	"kubefilebrowser/utils"
+	"kubefilebrowser/utils/denyip"
+	"kubefilebrowser/utils/logs"
 	"net/http"
 )
 
@@ -37,7 +36,7 @@ func Router() *gin.Engine {
 	router.MaxMultipartMemory = 32 << 20
 	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression), cors.Default())
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	
+
 	// 静态资源
 	router.StaticFile("/", "static/index.html")
 	router.Static("/static", "static")
@@ -45,15 +44,6 @@ func Router() *gin.Engine {
 	router.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", nil)
 	})
-	
-	staticGroup := router.Group("/test")
-	{
-		staticGroup.GET("/test", static.StatusHtml)
-		staticGroup.GET("/upload", static.UploadHtml)
-		staticGroup.GET("/multi_upload", static.MultiUploadHtml)
-		staticGroup.GET("/download", static.DownloadHtml)
-		staticGroup.GET("/terminal", static.TerminalHtml)
-	}
 
 	apiGroup := router.Group("/api", handlersMiddleware())
 	{
@@ -77,7 +67,7 @@ func Router() *gin.Engine {
 
 func handlersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		render := controller.Gin{C: c}
+		render := apis.Gin{C: c}
 		reqIPAddr := denyip.GetRemoteIP(c.Request)
 		if !utils.InSliceString("*", configs.Config.IPWhiteList) && len(configs.Config.IPWhiteList) != 0 {
 			reeIPadLenOffset := len(reqIPAddr) - 1

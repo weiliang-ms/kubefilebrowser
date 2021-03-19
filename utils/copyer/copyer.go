@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"kubecp/utils/execer"
+	"kubefilebrowser/utils/execer"
 )
 
 func NewCopyer(namespace, podName, containerName string, restConfig *rest.Config, k8sClient *kubernetes.Clientset) *copyer {

@@ -14,8 +14,8 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-kubecp_*
-kubecp
+kubefilebrowser_*
+kubefilebrowser
 .idea
 .vscode
 tmp

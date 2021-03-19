@@ -8,11 +8,11 @@ import (
 	"io"
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubecp/configs"
-	"kubecp/controller"
-	"kubecp/logs"
-	"kubecp/utils"
-	"kubecp/utils/copyer"
+	"kubefilebrowser/apis"
+	"kubefilebrowser/configs"
+	"kubefilebrowser/utils"
+	"kubefilebrowser/utils/copyer"
+	"kubefilebrowser/utils/logs"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -36,11 +36,11 @@ type MultiCopyQuery struct {
 // @Param pod_name query MultiCopyQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
 // @Param dest_path query MultiCopyQuery false "dest_path" default(/root/)
 // @Param files formData file true "files"
-// @Success 200 {object} controller.JSONResult
-// @Failure 500 {object} controller.JSONResult
+// @Success 200 {object} apis.JSONResult
+// @Failure 500 {object} apis.JSONResult
 // @Router /api/k8s/multi_upload [post]
 func MultiCopy2Container(c *gin.Context) {
-	render := controller.Gin{C: c}
+	render := apis.Gin{C: c}
 	var query CopyQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
@@ -153,7 +153,7 @@ func MultiCopy2Container(c *gin.Context) {
 			}
 		}
 	}()
-	
+
 	for _, podName := range podNameSlice {
 		var containerSlice []string
 		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
@@ -166,7 +166,7 @@ func MultiCopy2Container(c *gin.Context) {
 		for _, container := range res.Spec.Containers {
 			containerSlice = append(containerSlice, container.Name)
 		}
-		
+
 		for _, container := range containerSlice {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, cErrCh chan error, podName, container string) {
@@ -229,11 +229,11 @@ type CopyQuery struct {
 // @Param container_name query CopyQuery true "container_name" default(nginx-0)
 // @Param dest_path query CopyQuery false "dest_path" default(/root/)
 // @Param files formData file true "files"
-// @Success 200 {object} controller.JSONResult
-// @Failure 500 {object} controller.JSONResult
+// @Success 200 {object} apis.JSONResult
+// @Failure 500 {object} apis.JSONResult
 // @Router /api/k8s/upload [post]
 func Copy2Container(c *gin.Context) {
-	render := controller.Gin{C: c}
+	render := apis.Gin{C: c}
 	var query CopyQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
@@ -314,7 +314,7 @@ func Copy2Container(c *gin.Context) {
 			}
 		}(&wg, fErrCh, file)
 	}
-	
+
 	wg.Wait()
 	time.Sleep(1 * time.Second)
 
@@ -345,7 +345,6 @@ func Copy2Container(c *gin.Context) {
 		}
 	}
 
-	
 	var cErrCh = make(chan error)
 	var copiedCh = make(chan string)
 	var cStopCh = make(chan struct{}, 1)
@@ -424,11 +423,11 @@ type CopyFromPodQuery struct {
 // @Param pod_name query CopyFromPodQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
 // @Param container_name query CopyFromPodQuery true "container_name" default(nginx-0)
 // @Param dest_path query CopyFromPodQuery true "dest_path" default(/root)
-// @Success 200 {object} controller.JSONResult
-// @Failure 500 {object} controller.JSONResult
+// @Success 200 {object} apis.JSONResult
+// @Failure 500 {object} apis.JSONResult
 // @Router /api/k8s/download [get]
 func Copy2Local(c *gin.Context) {
-	render := controller.Gin{C: c}
+	render := apis.Gin{C: c}
 	var query CopyFromPodQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)

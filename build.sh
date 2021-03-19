@@ -44,7 +44,7 @@ done
 cd web && yarn run build && cd ../
 
 # build server
-name="kubecp"
+name="kubefilebrowser"
 version="v1.3-beta"
 osList="linux windows darwin"
 # shellcheck disable=SC2181
