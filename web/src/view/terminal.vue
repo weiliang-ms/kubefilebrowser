@@ -48,6 +48,7 @@ export default {
       namespaces:[],
       pods: [],
       containers:[],
+      order:"",
       shells : [
         {
           label: "sh",
@@ -74,8 +75,8 @@ export default {
           this.container = ""
           this.containers = []
           this.shell = ""
-          var data = res.items
-          for(var key in data){
+          const data = res.items
+          for(const key in data){
             this.namespaces.push(data[key].metadata.name)
           };
           console.log(this.namespaces)
@@ -85,14 +86,14 @@ export default {
     selectedNamespace() {
       GetPods({namespace: this.namespace}).then(res => {
         if (res) {
-          var pods=[]
+          const pods=[]
           this.pod = ""
           this.pods = []
           this.container = ""
           this.containers = []
-          var data = res.items
-          for(var key in data){
-            var _d = {label:data[key].metadata.name, value:data[key].metadata.name}
+          const data = res.items
+          for(const key in data){
+            const _d = {label:data[key].metadata.name, value:data[key].metadata.name}
             pods.push(_d)
           };
           this.pods = pods
@@ -104,12 +105,12 @@ export default {
       GetPods({namespace: this.namespace, pod: this.pod}).then(res => {
         if (res) {
           console.log(res)
-          var containers=[]
+          const containers=[]
           this.container = ""
           this.containers = []
-          var data = res.spec.containers
-          for(var key in data){
-            var _d = {label:data[key].name, value:data[key].name}
+          const data = res.spec.containers
+          for(const key in data){
+            const _d = {label:data[key].name, value:data[key].name}
             containers.push(_d)
           };
           this.containers = containers
@@ -122,7 +123,7 @@ export default {
       document.getElementById("terminal-container").innerHTML="";
       document.getElementById('terminal-container').style.height = window.innerHeight + 'px';
       document.getElementById('terminal-container').style.width = window.innerWidth + 'px';
-      var url = "ws://"+window.location.host+"/api/k8s/terminal?namespace="+this.namespace+"&pods="+this.pod+"&container="+this.container+"&shell="+this.shell;
+      const url = "ws://"+window.location.host+"/api/k8s/terminal?namespace="+this.namespace+"&pods="+this.pod+"&container="+this.container+"&shell="+this.shell;
 
       // xterm配置自适应大小插件
       Terminal.applyAddon(fit);
@@ -133,7 +134,7 @@ export default {
       Terminal.applyAddon(webLinks)
 
       // 创建终端
-      var term = new Terminal({
+      const term = new Terminal({
         cursorBlink: true
       });
       term.open(document.getElementById("terminal-container"));
@@ -146,7 +147,7 @@ export default {
       term.focus();
 
       // 连接websocket
-      var ws = new WebSocket(url);
+      const ws = new WebSocket(url);
 
       ws.onopen = function(event) {
         console.log(event)
@@ -170,7 +171,7 @@ export default {
       window.addEventListener("resize", function () {
         term.fit()
         // 把web终端的尺寸term.rows和term.cols发给服务端, 通知sshd调整输出宽度
-        var msg = {type: "resize", rows: term.rows, cols: term.cols}
+        const msg = {type: "resize", rows: term.rows, cols: term.cols}
         ws.send(JSON.stringify(msg))
 
         // console.log(term.rows + "," + term.cols)
@@ -179,9 +180,11 @@ export default {
       // 当向web终端敲入字符时候的回调
       term.on('data', function(input) {
         // 写给服务端, 由服务端发给container
-        var msg = {type: "input", input: input}
+        const msg = {type: "input", input: input}
         ws.send(JSON.stringify(msg))
       })
+      // 向web终端敲入回车时候的回调
+
     }
   }
 }

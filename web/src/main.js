@@ -9,7 +9,6 @@ import util from './lib/util.js'
 import data from './lib/data.js'
 import "xterm/dist/xterm.css";
 import "xterm/dist/xterm.js";
-import { Terminal } from 'xterm';
 import './scss/app.scss'
 
 let localeLang
@@ -21,9 +20,9 @@ if (localeLang.indexOf('en') !== 0) {
     localeLang = 'zh-cn'
 }
 moment.locale(localeLang)
-// Vue.config.debug = true;
+Vue.config.debug = true;
 Vue.config.productionTip = false
-Vue.use(ElementUI, Terminal);
+Vue.use(ElementUI)
 
 new Vue({
     i18n,

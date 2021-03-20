@@ -4,7 +4,7 @@
             <div class="header-left">
                 <div class="logo">
                     <h2>KubernetesFileBrowser</h2>
-                    <i class="iconfont icon-kubecp"></i>
+                    <i class="iconfont icon-kubefilebrowser"></i>
                 </div>
             </div>
             <div class="header-right">
@@ -15,11 +15,11 @@
                             <i class="iconfont small icon-arrow-down">{{ $t('more') }}</i>
                         </span>
                         <el-dropdown-menu slot="dropdown" class="app-header-dropdown">
-                            <a class="app-dropdown-link" href="https://github.com/xmapst/kubecp/issues" target="_blank">
+                            <a class="app-dropdown-link" href="https://github.com/xmapst/kubefilebrowser/issues" target="_blank">
                                 <el-dropdown-item><i class="iconfont small left icon-help"></i>{{ $t('help') }}</el-dropdown-item>
                             </a>
-                            <a class="app-dropdown-link" href="https://github.com/xmapst/kubecp" target="_blank">
-                                <el-dropdown-item><i class="iconfont small left icon-pull-request"></i>{{ $t('contribute_to_kube_cp') }}</el-dropdown-item>
+                            <a class="app-dropdown-link" href="https://github.com/xmapst/kubefilebrowser" target="_blank">
+                                <el-dropdown-item><i class="iconfont small left icon-pull-request"></i>{{ $t('contribute_to_kube_file_browser') }}</el-dropdown-item>
                             </a>
                         </el-dropdown-menu>
                     </el-dropdown>
@@ -61,7 +61,7 @@
                     <router-view/>
                     <div class="app-cpy">
                         <p>
-                        ©️ {{ new Date().getFullYear() }} <a href="https://github.com/xmapst/kubecp" target="_blank">KubernetesFileBrowser</a>. All Rights Reserved. MIT License.
+                        ©️ {{ new Date().getFullYear() }} <a href="https://github.com/xmapst/kubefilebrowser" target="_blank">KubernetesFileBrowser</a>. All Rights Reserved. MIT License.
                         </p>
                     </div>
                 </div>

@@ -20,12 +20,8 @@
       </el-select>
       &nbsp;&nbsp;
       <el-input v-model="destPath" style="width: 217px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
-      &nbsp;&nbsp;
-      <el-button @click.native="uploadFile">{{ $t('upload_file') }}</el-button>
-      &nbsp;&nbsp;
-      <el-button @click.native="uploadDir">{{ $t('upload_dir') }}</el-button>
+
     </el-card>
-    <div id="terminal-container" style="width: 100%;height: 100%"></div>
   </div>
 </template>
 
@@ -42,7 +38,7 @@ export default {
       namespaces:[],
       pods: [],
       containers:[],
-      destPath:""
+      destPath:"",
     }
   },
   methods: {
@@ -55,11 +51,10 @@ export default {
           this.container = []
           this.containers = []
           this.shell = ""
-          var data = res.items
-          for (var key in data) {
+          const data = res.items;
+          for (const key in data) {
             this.namespaces.push(data[key].metadata.name)
           }
-          ;
           console.log(this.namespaces)
         }
       })
@@ -67,17 +62,16 @@ export default {
     selectedNamespace() {
       GetPods({namespace: this.namespace}).then(res => {
         if (res) {
-          var pods = []
+          const pods = [];
           this.pod = ""
           this.pods = []
           this.container = []
           this.containers = []
-          var data = res.items
-          for (var key in data) {
-            var _d = {label: data[key].metadata.name, value: data[key].metadata.name}
+          const data = res.items;
+          for (const key in data) {
+            const _d = {label: data[key].metadata.name, value: data[key].metadata.name}
             pods.push(_d)
           }
-          ;
           this.pods = pods
           console.log(this.pods)
         }
@@ -87,25 +81,18 @@ export default {
       GetPods({namespace: this.namespace, pod: this.pod}).then(res => {
         if (res) {
           console.log(res)
-          var containers = []
+          const containers = []
           this.container = []
           this.containers = []
-          var data = res.spec.containers
-          for (var key in data) {
-            var _d = {label: data[key].name, value: data[key].name}
+          const data = res.spec.containers
+          for (const key in data) {
+            const _d = {label: data[key].name, value: data[key].name}
             containers.push(_d)
           }
-          ;
           this.containers = containers
           console.log(this.containers)
         }
       })
-    },
-    uploadFile() {
-
-    },
-    uploadDir() {
-
     }
   },
   watch:{

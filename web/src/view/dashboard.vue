@@ -46,7 +46,7 @@
       @close="dialogTerminalVisible = false"
       :before-close="handleClose">
     <div>
-      <span>未实现</span>
+      <span>前端实现中</span>
       <div id="terminal-container"></div>
     </div>
     </el-dialog>
@@ -56,7 +56,7 @@
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
       <div>
-        <span>未实现</span>
+        <span>前端实现中</span>
         <div id="filebrowser-container"></div>
       </div>
     </el-dialog>
@@ -80,7 +80,6 @@ export default {
       deployments: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
-      ws: null,
     }
   },
   methods: {
@@ -91,7 +90,7 @@ export default {
           this.deployment = []
           this.deployments = []
           this.tableData = []
-          var data = res.items
+          const data = res.items
           for(var key in data){
             this.namespaces.push(data[key].metadata.name)
           };
@@ -103,12 +102,12 @@ export default {
       console.log(options);
       GetDeployment({namespace: options}).then(res => {
         if (res) {
-          var deployments=[]
+          const deployments=[]
           this.deployments = []
           this.tableData = []
-          var data = res.items
-          for(var key in data){
-            var _d = {label:data[key].metadata.name, value:data[key].metadata.name}
+          const data = res.items
+          for(const key in data){
+            const _d = {label:data[key].metadata.name, value:data[key].metadata.name}
             deployments.push(_d)
           };
           this.deployments = deployments
@@ -121,10 +120,10 @@ export default {
     },
     getStatus() {
       console.log(this.deployment[0], this.namespace);
-      var deployment = this.deployment[0]
+      let deployment = this.deployment[0]
       if (this.deployment[0] === "all") {
-        deployment = []
-        for (var key in this.deployments) {
+        deployment = ""
+        for (const key in this.deployments) {
           deployment.push(this.deployments[key].value)
         }
       }
@@ -132,11 +131,11 @@ export default {
         if (res) {
           console.log(res)
           this.tableData = []
-          for (var i in res) {
-            var pod_name =res[i].pod_name;
-            var cData = res[i].containers;
-            for (var j in cData) {
-              var tr = {
+          for (const i in res) {
+            const pod_name =res[i].pod_name;
+            const cData = res[i].containers;
+            for (const j in cData) {
+              let tr = {
                 Pods:"",
                 Container:cData[j].name,
                 Image:cData[j].image,
