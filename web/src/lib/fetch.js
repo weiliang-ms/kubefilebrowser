@@ -3,7 +3,6 @@ import qs from 'qs'
 import Vue from 'vue'
 import i18n from '@/lang'
 import Code from './code.js'
-import Router from '@/router'
 
 let API_URL = '/api'
 let CancelToken = axios.CancelToken
@@ -31,10 +30,9 @@ service.interceptors.response.use(response => {
             message: i18n.t("network_error"),
         }
     }
-    if (res.code != 0) {
+    if (res.code !== 0) {
         switch (res.code) {
             case Code.CODE_ERR_NETWORK:
-            case Code.CODE_ERR_SYSTEM:
             case Code.CODE_ERR_APP:
                 Vue.prototype.$message.error(res.message)
                 break
@@ -65,7 +63,7 @@ export function post(url, data, params, headers) {
         params,
     }
     if (data) {
-        if (headers && headers['Content-Type'] == 'multipart/form-data') {
+        if (headers && headers['Content-Type'] === 'multipart/form-data') {
             config.data = data
         } else {
             config.data = qs.stringify(data, { indices: false })

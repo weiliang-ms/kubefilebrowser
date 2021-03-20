@@ -1,5 +1,5 @@
 import {post} from '@/lib/fetch.js'
 
-export function MultiUpload(params) {
-    return post('/k8s/multi_upload', params)
+export function MultiUpload(data, params, headers) {
+    return post('/k8s/multi_upload', data, params, headers)
 }

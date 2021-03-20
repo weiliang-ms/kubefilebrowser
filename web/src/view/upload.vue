@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-card shadow="never">
+      <div>
       <el-select v-model="namespace" @click.native="getNamespace" @change="selectedNamespace" filterable :placeholder="$t('please_select_namespace')">
         <el-option
             v-for="item in namespaces"
@@ -19,15 +20,40 @@
         <el-option v-for="item in containers" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>
       &nbsp;&nbsp;
-      <el-input v-model="destPath" style="width: 217px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
-
+      <el-input v-model="destPath" style="width: 193px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
+      </div>
+      &nbsp;&nbsp;
+      <div>
+        <el-upload
+            action=""
+            multiple
+            :file-list="fileList"
+            :on-change="fileChange"
+            :on-remove="fileRemove"
+            :auto-upload="false"
+            style="display: inline-block">
+          <el-button type="primary" plain><i class="el-icon-upload el-icon--right"></i>{{$t('select_file')}}</el-button>
+        </el-upload>
+<!--        <el-upload-->
+<!--            action=""-->
+<!--            webkitdirector-->
+<!--            :file-list="fileList"-->
+<!--            :on-change="fileChange"-->
+<!--            :on-remove="fileRemove"-->
+<!--            :auto-upload="false"-->
+<!--            style="display: inline-block">-->
+<!--          <el-button type="primary" plain><i class="el-icon-upload el-icon&#45;&#45;right"></i>{{$t('select_dir')}}</el-button>-->
+<!--        </el-upload>-->
+        <el-button style="margin-left: 10px;vertical-align: top;" type="success" plain @click="submitUpload">{{$t('upload_all')}}</el-button>
+      </div>
     </el-card>
   </div>
 </template>
 
 <script>
 import { GetNamespace } from '@/api/namespaces'
-import {GetPods} from "@/api/pods";
+import {GetPods} from "@/api/pods"
+import {FileOrDirUpload} from "@/api/upload"
 
 export default {
   data() {
@@ -39,6 +65,7 @@ export default {
       pods: [],
       containers:[],
       destPath:"",
+      fileList:[],
     }
   },
   methods: {
@@ -50,7 +77,6 @@ export default {
           this.pods = []
           this.container = []
           this.containers = []
-          this.shell = ""
           const data = res.items;
           for (const key in data) {
             this.namespaces.push(data[key].metadata.name)
@@ -93,7 +119,41 @@ export default {
           console.log(this.containers)
         }
       })
-    }
+    },
+    fileChange(file, fileList) {
+      this.fileList = fileList
+    },
+    fileRemove(file, fileList) {
+      this.fileList = fileList
+    },
+    submitUpload(){
+      console.log("this.fileList", this.fileList)
+      let formData = new FormData
+      this.fileList.forEach(file => {
+        formData.append("files", file.raw)
+      })
+      var container = this.container[0]
+      if (this.container[0] === "all") {
+        container = []
+        for (const key in this.containers) {
+          container.push(this.containers[key].value)
+        }
+      }
+      FileOrDirUpload(formData, {
+        namespace:this.namespace,
+        pod_name:this.pod,
+        container_name:container,
+        dest_path:this.destPath
+      },{"Content-Type":"multipart/form-data"}).then(res => {
+        if (res.failure !== undefined) {
+          alert(res.failure)
+        }else {
+          alert(res.success)
+        }
+      }, (err) =>{
+        alert(err.info.message)
+      })
+    },
   },
   watch:{
     container:function(val,oldVal){

@@ -1,5 +1,5 @@
 import {post} from '@/lib/fetch.js'
 
-export function Upload(params) {
-    return post('/k8s/upload', params)
+export function FileOrDirUpload(data, params, headers) {
+    return post('/k8s/upload', data, params, headers)
 }

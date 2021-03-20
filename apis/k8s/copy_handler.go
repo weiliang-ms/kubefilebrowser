@@ -78,6 +78,12 @@ func MultiCopy2Container(c *gin.Context) {
 		return
 	}
 	files := form.File["files"]
+	if len(files) == 0 {
+		logs.Error("files is null")
+		render.SetError(utils.CODE_ERR_MSG, fmt.Errorf("files is null"))
+		return
+	}
+
 	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var wg sync.WaitGroup
 	var fErrCh = make(chan error, len(files))
@@ -265,10 +271,17 @@ func Copy2Container(c *gin.Context) {
 
 	form, err := c.MultipartForm()
 	if err != nil {
+		logs.Error(err)
 		render.SetError(utils.CODE_ERR_MSG, err)
 		return
 	}
 	files := form.File["files"]
+	if len(files) == 0 {
+		logs.Error("files is null")
+		render.SetError(utils.CODE_ERR_MSG, fmt.Errorf("files is null"))
+		return
+	}
+
 	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var wg sync.WaitGroup
 	var fErrCh = make(chan error, len(files))
@@ -289,13 +302,14 @@ func Copy2Container(c *gin.Context) {
 			return
 		}
 	}
-	defer os.RemoveAll(_tmpSaveDir)
+	//defer os.RemoveAll(_tmpSaveDir)
 
 	for _, file := range files {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, fErrCh chan error, file *multipart.FileHeader) {
 			defer wg.Done()
 			// Default save path
+			logs.Debug(file.Filename)
 			_tp := _tmpSaveDir
 			uploadFilname := filepath.Base(file.Filename)
 			uploadFPath := filepath.Dir(file.Filename)
@@ -303,7 +317,10 @@ func Copy2Container(c *gin.Context) {
 			if uploadFPath != "." {
 				_tp = filepath.Join(_tmpSaveDir, uploadFPath)
 				if !utils.FileOrPathExist(_tp) {
-					os.MkdirAll(_tp, os.ModePerm)
+					err = os.MkdirAll(_tp, os.ModePerm)
+					if err != nil {
+						logs.Error(err)
+					}
 				}
 			}
 
@@ -386,7 +403,7 @@ func Copy2Container(c *gin.Context) {
 				cErrCh <- fmt.Errorf("container: %s %v", container, err)
 				return
 			}
-			logs.Info("container: ", container)
+			logs.Info("container: ", container, " Copied")
 			copiedCh <- fmt.Sprintf("container: %s Copied", container)
 		}(&wg, container)
 	}
