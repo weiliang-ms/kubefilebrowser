@@ -35,7 +35,7 @@
                 <el-button v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
                 <el-button v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
                 <span></span>
-                <el-button @click.native="openFilebrowser(scope.row)">{{ $t('filebrowser') }}</el-button>
+                <el-button @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
               </template>
           </el-table-column>
         </el-table>
@@ -51,23 +51,42 @@
     </div>
     </el-dialog>
     <el-dialog
-        :title="$t('filebrowser')"
+        :title="$t('file_browser')"
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
-      <div>
-        <span>前端实现中</span>
-        <div id="filebrowser-container"></div>
-      </div>
+      <span class="el-icon-folder-opened"></span>
+      <span class="el-icon-refresh"></span>
+        <el-table
+            class="app-table"
+            size="max"
+            :data="fileBrowserData">
+          <el-header></el-header>
+          <el-table-column prop="Name" :label="$t('name')">
+            <template slot-scope="scope">
+              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser('', scope.row.Path+scope.row.Name)">{{scope.row.Name}}</span>
+              <span class="el-icon-files" v-else>{{scope.row.Name}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="Size" :label="$t('size')"></el-table-column>
+          <el-table-column prop="Mode" :label="$t('mode')"></el-table-column>
+          <el-table-column prop="ModTime" :label="$t('mod_time')"></el-table-column>
+          <el-table-column prop="Download" :label="$t('operate')">
+            <template slot-scope="scope">
+              <span class="el-icon-download" @click="download(scope.row.Path+scope.row.Name)"></span>
+            </template>
+          </el-table-column>
+        </el-table>
     </el-dialog>
   </div>
 </template>
 
 
 <script>
-import { GetStatus } from '@/api/status'
-import { GetNamespace } from '@/api/namespaces'
-import { GetDeployment } from "@/api/deployment";
+import { GetStatus } from '../api/status'
+import { GetNamespace } from '../api/namespaces'
+import { GetDeployment } from "../api/deployment";
+import {FileBrowser} from "../api/filebrowser";
 
 export default {
   data() {
@@ -78,6 +97,11 @@ export default {
       tableLoading: false,
       tableData: [],
       deployments: [],
+      fileBrowserData: [],
+      pods: "",
+      container:"",
+      path: "",
+      oldPath: '',
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
     }
@@ -93,7 +117,7 @@ export default {
           const data = res.items
           for(var key in data){
             this.namespaces.push(data[key].metadata.name)
-          };
+          }
           console.log(this.namespaces)
         }
       })
@@ -109,7 +133,7 @@ export default {
           for(const key in data){
             const _d = {label:data[key].metadata.name, value:data[key].metadata.name}
             deployments.push(_d)
-          };
+          }
           this.deployments = deployments
           console.log(this.deployments)
         }
@@ -120,9 +144,9 @@ export default {
     },
     getStatus() {
       console.log(this.deployment[0], this.namespace);
-      let deployment = this.deployment[0]
+      let deployment = this.deployment
       if (this.deployment[0] === "all") {
-        deployment = ""
+        deployment = []
         for (const key in this.deployments) {
           deployment.push(this.deployments[key].value)
         }
@@ -169,9 +193,40 @@ export default {
       this.dialogTerminalVisible = true
       console.log(options, this.namespace,shell)
     },
-    openFilebrowser(options) {
+    openFileBrowser(options, path) {
       this.dialogFileBrowserVisible = true
-      console.log(options)
+      console.log(options, path)
+      if (path === undefined) {
+        path = "/"
+      }
+      if (path === "/") {
+        this.pods = options.Pods
+        this.container = options.Container
+      }
+      this.oldPath = this.path
+      this.path = path
+      this.fileBrowserData = []
+      FileBrowser({
+        namespace: this.namespace,
+        pods: this.pods,
+        container: this.container,
+        path: path,
+      }).then(res => {
+        console.log(res)
+        this.fileBrowserData = []
+        if (res !== undefined) {
+          this.fileBrowserData = res
+        }
+      }, err => {
+        console.log(err)
+        alert(err.info.message)
+      })
+    },
+    download(path) {
+      console.log(this.namespace)
+      console.log(this.pods)
+      console.log(this.container)
+      console.log(path)
     },
     handleClose(done) {
       this.$confirm('确认关闭？')

@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 type File struct {
 	Name    string      `json:"Name"`
+	Path    string      `json:"Path"`
 	Size    int64       `json:"Size"`
 	Mode    string      `json:"Mode"`
 	ModTime time.Time   `json:"ModTime"`
@@ -38,8 +40,14 @@ func main() {
 		if d.Name() == "ls" || d.Name() == "ls.exe" {
 			continue
 		}
+
+		path, err := filepath.Abs(filepath.Dir(d.Name()))
+		if err != nil {
+			continue
+		}
 		files = append(files, File{
 			Name:    d.Name(),
+			Path:    path,
 			Size:    d.Size(),
 			Mode:    d.Mode().String(),
 			ModTime: d.ModTime(),
