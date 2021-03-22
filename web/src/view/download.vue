@@ -29,8 +29,11 @@
 </template>
 
 <script>
-import {GetNamespace} from '@/api/namespaces'
-import {GetPods} from "@/api/pods";
+import {GetNamespace} from '../api/namespaces'
+import {GetPods} from "../api/pods";
+import {Download} from "../api/download";
+import axios from 'axios'
+import fileDownload from 'js-file-download'
 
 export default {
   data() {
@@ -54,11 +57,10 @@ export default {
           this.container = ""
           this.containers = []
           this.shell = ""
-          var data = res.items
-          for (var key in data) {
+          const data = res.items;
+          for (const key in data) {
             this.namespaces.push(data[key].metadata.name)
           }
-          ;
           console.log(this.namespaces)
         }
       })
@@ -71,12 +73,11 @@ export default {
           this.pods = []
           this.container = ""
           this.containers = []
-          var data = res.items
-          for (var key in data) {
-            var _d = {label: data[key].metadata.name, value: data[key].metadata.name}
+          const data = res.items;
+          for (const key in data) {
+            const _d = {label: data[key].metadata.name, value: data[key].metadata.name};
             pods.push(_d)
           }
-          ;
           this.pods = pods
           console.log(this.pods)
         }
@@ -86,44 +87,60 @@ export default {
       GetPods({namespace: this.namespace, pod: this.pod}).then(res => {
         if (res) {
           console.log(res)
-          var containers = []
+          const containers = [];
           this.container = ""
           this.containers = []
-          var data = res.spec.containers
-          for (var key in data) {
-            var _d = {label: data[key].name, value: data[key].name}
+          const data = res.spec.containers;
+          for (const key in data) {
+            const _d = {label: data[key].name, value: data[key].name};
             containers.push(_d)
           }
-          ;
           this.containers = containers
           console.log(this.containers)
         }
       })
     },
     downloadFile() {
+      // Download({
+      //   namespace: this.namespace,
+      //   pod_name: this.pod,
+      //   container_name: this.container,
+      //   dest_path:this.destPath
+      // }).then(res =>{
+      //   const fileName = res.getResponseHeader('X-File-Name');
+      //   console.log(fileName)
+      //   fileDownload(res.data, fileName)
+      // })
       const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pod+"&container_name="+this.container+"&dest_path="+this.destPath;
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
-      xhr.responseType = "blob";    // 返回类型blob
-      xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
-      // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
-      xhr.onload = function () {
-        // 请求完成
-        if (this.status === 200) {
-          // 返回200
-          let content = xhr.response;
-          let eLink = document.createElement('a');
-          eLink.download = this.getResponseHeader('X-File-Name');
-          eLink.style.display = 'none';
-          let blob = new Blob([content]);
-          eLink.href = URL.createObjectURL(blob);
-          document.body.appendChild(eLink);
-          eLink.click();
-          document.body.removeChild(eLink);
-        }
-      };
-      // 发送ajax请求
-      xhr.send()
+      axios.get(url, {
+        responseType: 'blob' //返回的数据类型
+      }).then(res => {
+        console.log(res.headers['X-File-Name'])
+        fileDownload(res.data, res.headers['X-File-Name'])
+      })
+      // const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pod+"&container_name="+this.container+"&dest_path="+this.destPath;
+      // const xhr = new XMLHttpRequest();
+      // xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
+      // xhr.responseType = "blob";    // 返回类型blob
+      // xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+      // // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
+      // xhr.onload = function () {
+      //   // 请求完成
+      //   if (this.status === 200) {
+      //     // 返回200
+      //     let content = xhr.response;
+      //     let eLink = document.createElement('a');
+      //     eLink.download = this.getResponseHeader('X-File-Name');
+      //     eLink.style.display = 'none';
+      //     let blob = new Blob([content]);
+      //     eLink.href = URL.createObjectURL(blob);
+      //     document.body.appendChild(eLink);
+      //     eLink.click();
+      //     document.body.removeChild(eLink);
+      //   }
+      // };
+      // // 发送ajax请求
+      // xhr.send()
     }
   },
 }
