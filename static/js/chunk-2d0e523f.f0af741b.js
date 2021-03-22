@@ -1,2 +1,0 @@
-(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d0e523f"],{"92e5":function(e,n,t){"use strict";t.r(n);var r=function(){var e=this,n=e.$createElement,t=e._self._c||n;return t("div",[t("el-card",{attrs:{shadow:"never"}},[e._v(" 前端实现中 ")])],1)},a=[],c=t("2877"),l={},s=Object(c["a"])(l,r,a,!1,null,null,null);n["default"]=s.exports}}]);
-//# sourceMappingURL=chunk-2d0e523f.f0af741b.js.map

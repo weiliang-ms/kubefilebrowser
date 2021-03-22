@@ -10,12 +10,8 @@ const routes = [
     {
         path: '/',
         component: _import('layer'),
-        name: 'console',
-        title: i18n.t('console'),
-        meta: {
-            title: i18n.t('console'),
-            icon: 'icon-console',
-        },
+        name: 'dashboard',
+        title: i18n.t('dashboard'),
         redirect: { name: 'dashboard' },
         children: [
             {
@@ -23,29 +19,11 @@ const routes = [
                 name: 'dashboard',
                 meta: {
                     title: i18n.t('dashboard'),
-                    icon: 'icon-dashboard',
+                    icon: 'el-icon-monitor',
                     single: true,
                 },
                 component: _import('dashboard'),
-            },
-            {
-                path: 'terminal',
-                name: 'terminal',
-                meta: {
-                    title: i18n.t('terminal'),
-                    icon: 'icon-terminal',
-                },
-                component: _import('terminal'),
-            },
-            {
-                path: 'filebrowser',
-                name: 'filebrowser',
-                meta: {
-                    title: i18n.t('filebrowser'),
-                    icon: 'icon-filebrowser',
-                },
-                component: _import('filebrowser'),
-            },
+            }
         ],
     },
     {
@@ -55,7 +33,7 @@ const routes = [
         component: _import('layer'),
         meta: {
             title: i18n.t('copy'),
-            icon: 'icon-copy',
+            icon: 'el-icon-upload',
         },
         children: [
             {

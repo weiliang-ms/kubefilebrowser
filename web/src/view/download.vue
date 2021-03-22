@@ -31,7 +31,6 @@
 <script>
 import {GetNamespace} from '../api/namespaces'
 import {GetPods} from "../api/pods";
-import {Download} from "../api/download";
 import axios from 'axios'
 import fileDownload from 'js-file-download'
 
@@ -68,7 +67,7 @@ export default {
     selectedNamespace() {
       GetPods({namespace: this.namespace}).then(res => {
         if (res) {
-          var pods = []
+          const pods = [];
           this.pod = ""
           this.pods = []
           this.container = ""
@@ -101,46 +100,29 @@ export default {
       })
     },
     downloadFile() {
-      // Download({
-      //   namespace: this.namespace,
-      //   pod_name: this.pod,
-      //   container_name: this.container,
-      //   dest_path:this.destPath
-      // }).then(res =>{
-      //   const fileName = res.getResponseHeader('X-File-Name');
-      //   console.log(fileName)
-      //   fileDownload(res.data, fileName)
-      // })
       const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pod+"&container_name="+this.container+"&dest_path="+this.destPath;
-      axios.get(url, {
-        responseType: 'blob' //返回的数据类型
-      }).then(res => {
-        console.log(res.headers['X-File-Name'])
-        fileDownload(res.data, res.headers['X-File-Name'])
-      })
-      // const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pod+"&container_name="+this.container+"&dest_path="+this.destPath;
-      // const xhr = new XMLHttpRequest();
-      // xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
-      // xhr.responseType = "blob";    // 返回类型blob
-      // xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
-      // // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
-      // xhr.onload = function () {
-      //   // 请求完成
-      //   if (this.status === 200) {
-      //     // 返回200
-      //     let content = xhr.response;
-      //     let eLink = document.createElement('a');
-      //     eLink.download = this.getResponseHeader('X-File-Name');
-      //     eLink.style.display = 'none';
-      //     let blob = new Blob([content]);
-      //     eLink.href = URL.createObjectURL(blob);
-      //     document.body.appendChild(eLink);
-      //     eLink.click();
-      //     document.body.removeChild(eLink);
-      //   }
-      // };
-      // // 发送ajax请求
-      // xhr.send()
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
+      xhr.responseType = "blob";    // 返回类型blob
+      xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+      // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
+      xhr.onload = function () {
+        // 请求完成
+        if (this.status === 200) {
+          // 返回200
+          let content = xhr.response;
+          let eLink = document.createElement('a');
+          eLink.download = this.getResponseHeader('X-File-Name');
+          eLink.style.display = 'none';
+          let blob = new Blob([content]);
+          eLink.href = URL.createObjectURL(blob);
+          document.body.appendChild(eLink);
+          eLink.click();
+          document.body.removeChild(eLink);
+        }
+      };
+      // 发送ajax请求
+      xhr.send()
     }
   },
 }

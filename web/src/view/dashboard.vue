@@ -32,10 +32,10 @@
             <el-table-column prop="OS" :label="$t('os')"></el-table-column>
             <el-table-column prop="Operate" :label="$t('operate')" width="160" align="center">
               <template slot-scope="scope">
-                <el-button v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
-                <el-button v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
+                <el-button class="el-icon-s-fold" v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
+                <el-button class="el-icon-s-fold" v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
                 <span></span>
-                <el-button @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
+                <el-button class="el-icon-files" @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
               </template>
           </el-table-column>
         </el-table>
@@ -51,27 +51,36 @@
     </div>
     </el-dialog>
     <el-dialog
+        width="80%"
         :title="$t('file_browser')"
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
-      <span class="el-icon-folder-opened"></span>
-      <span class="el-icon-refresh"></span>
+<!--      <span v-if="path.split('\\')" class="el-icon-folder-opened"-->
+<!--            @click="openFileBrowser(null,-->
+<!--            path.split('\\').join('\\'))"-->
+<!--      >{{path.split('\\')}}</span>-->
+<!--      <span v-if="path.split('/').join('/')" class="el-icon-folder-opened"-->
+<!--            @click="openFileBrowser(null,-->
+<!--            path.split('/').join('/'))"-->
+<!--      >{{path.split('/')}}</span>-->
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="el-icon-refresh" @click="openFileBrowser(null, path)">{{$t('refresh')}}</span>
         <el-table
             class="app-table"
-            size="max"
+            size="100%"
             :data="fileBrowserData">
           <el-header></el-header>
           <el-table-column prop="Name" :label="$t('name')">
             <template slot-scope="scope">
-              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser('', scope.row.Path+scope.row.Name)">{{scope.row.Name}}</span>
+              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path+scope.row.Name)">{{scope.row.Name}}</span>
               <span class="el-icon-files" v-else>{{scope.row.Name}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="Size" :label="$t('size')"></el-table-column>
-          <el-table-column prop="Mode" :label="$t('mode')"></el-table-column>
+          <el-table-column prop="Size" min-width="50" :label="$t('size')"></el-table-column>
+          <el-table-column prop="Mode" width="200" :label="$t('mode')"></el-table-column>
           <el-table-column prop="ModTime" :label="$t('mod_time')"></el-table-column>
-          <el-table-column prop="Download" :label="$t('operate')">
+          <el-table-column prop="Download" :label="$t('operate')" align="center">
             <template slot-scope="scope">
               <span class="el-icon-download" @click="download(scope.row.Path+scope.row.Name)"></span>
             </template>
@@ -83,9 +92,9 @@
 
 
 <script>
-import { GetStatus } from '../api/status'
-import { GetNamespace } from '../api/namespaces'
-import { GetDeployment } from "../api/deployment";
+import {GetStatus} from '../api/status'
+import {GetNamespace} from '../api/namespaces'
+import {GetDeployment} from "../api/deployment";
 import {FileBrowser} from "../api/filebrowser";
 
 export default {
@@ -101,7 +110,6 @@ export default {
       pods: "",
       container:"",
       path: "",
-      oldPath: '',
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
     }
@@ -115,7 +123,7 @@ export default {
           this.deployments = []
           this.tableData = []
           const data = res.items
-          for(var key in data){
+          for(const key in data){
             this.namespaces.push(data[key].metadata.name)
           }
           console.log(this.namespaces)
@@ -199,11 +207,10 @@ export default {
       if (path === undefined) {
         path = "/"
       }
-      if (path === "/") {
+      if (path === "/" && options !== null) {
         this.pods = options.Pods
         this.container = options.Container
       }
-      this.oldPath = this.path
       this.path = path
       this.fileBrowserData = []
       FileBrowser({
@@ -223,10 +230,29 @@ export default {
       })
     },
     download(path) {
-      console.log(this.namespace)
-      console.log(this.pods)
-      console.log(this.container)
-      console.log(path)
+      const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path;
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
+      xhr.responseType = "blob";    // 返回类型blob
+      xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+      // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
+      xhr.onload = function () {
+        // 请求完成
+        if (this.status === 200) {
+          // 返回200
+          let content = xhr.response;
+          let eLink = document.createElement('a');
+          eLink.download = this.getResponseHeader('X-File-Name');
+          eLink.style.display = 'none';
+          let blob = new Blob([content]);
+          eLink.href = URL.createObjectURL(blob);
+          document.body.appendChild(eLink);
+          eLink.click();
+          document.body.removeChild(eLink);
+        }
+      };
+      // 发送ajax请求
+      xhr.send()
     },
     handleClose(done) {
       this.$confirm('确认关闭？')

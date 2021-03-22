@@ -42,6 +42,7 @@ export default {
     'prompt_message': '提示信息',
     'ram': '内存',
     'remove': '移除',
+    'refresh': '刷新',
     'state': '状态',
     'select_dir': '选取目录',
     'select_file': '选取文件',
