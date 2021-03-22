@@ -56,16 +56,13 @@
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
-<!--      <span v-if="path.split('\\')" class="el-icon-folder-opened"-->
-<!--            @click="openFileBrowser(null,-->
-<!--            path.split('\\').join('\\'))"-->
-<!--      >{{path.split('\\')}}</span>-->
-<!--      <span v-if="path.split('/').join('/')" class="el-icon-folder-opened"-->
-<!--            @click="openFileBrowser(null,-->
-<!--            path.split('/').join('/'))"-->
-<!--      >{{path.split('/')}}</span>-->
+<!--      <ul>-->
+<!--        <li v-for="item in paths">-->
+<!--          <a class="el-icon-folder-opened">&nbsp;&nbsp; {{item}}</a>-->
+<!--        </li>-->
+<!--      </ul>-->
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <span class="el-icon-refresh" @click="openFileBrowser(null, path)">{{$t('refresh')}}</span>
+      <span class="el-icon-refresh" @click="openFileBrowser(null, path)">&nbsp;&nbsp;{{$t('refresh')}}</span>
         <el-table
             class="app-table"
             size="100%"
@@ -73,8 +70,8 @@
           <el-header></el-header>
           <el-table-column prop="Name" :label="$t('name')">
             <template slot-scope="scope">
-              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path+scope.row.Name)">{{scope.row.Name}}</span>
-              <span class="el-icon-files" v-else>{{scope.row.Name}}</span>
+              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
+              <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
             </template>
           </el-table-column>
           <el-table-column prop="Size" min-width="50" :label="$t('size')"></el-table-column>
@@ -110,6 +107,7 @@ export default {
       pods: "",
       container:"",
       path: "",
+      paths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
     }
@@ -211,6 +209,12 @@ export default {
         this.pods = options.Pods
         this.container = options.Container
       }
+
+      this.paths = this.path.split('/')
+      if (this.path === undefined) {
+        this.paths.push("/")
+      }
+
       this.path = path
       this.fileBrowserData = []
       FileBrowser({
