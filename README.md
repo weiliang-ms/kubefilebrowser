@@ -11,7 +11,6 @@ kubernetes container file browser
 | HTTP_ADDR | string | default:"0.0.0.0" |
 | LOG_LEVEL | string | default:"debug" |
 | IP_WHITE_LIST | []string | default:"*" |
-| DOWNLOAD_TMP | string | default:"tmp" |
 | KUBECONFIG | string | default:"~/.kube/config" |
 
 
