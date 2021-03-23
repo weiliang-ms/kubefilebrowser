@@ -43,7 +43,7 @@ kubernetes container file browser
 ![kubefilebrowser_index_html](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/index_html.jpg)
 
 ## file_browser
-![kubefilebrowser_index_html](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/file_browser.jpg)
+![kubefilebrowser](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/file_browser.jpg)
 
 ## Swagger
 
