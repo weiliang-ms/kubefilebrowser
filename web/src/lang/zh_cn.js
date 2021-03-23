@@ -14,7 +14,8 @@ export default {
     'deleted': '已删除',
     'deployment': "无状态集",
     'description': '描述信息',
-    'download': '文件/目录下载',
+    'download': '下载',
+    'file_or_dir_download': '文件/目录下载',
     'download_file': '下载',
     'edit': '编辑',
     'enter': '确定',
@@ -50,6 +51,7 @@ export default {
     'tag': '版本',
     'terminal': '终端命令行',
     'unknown_error': '未知错误',
-    'upload': '单Pod文件上传',
+    'upload': '上传',
+    'single_pod_file_upload': '单Pod文件上传',
     'upload_all': '全部上传',
 }

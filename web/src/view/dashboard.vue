@@ -56,30 +56,33 @@
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
-<!--      <ul>-->
-<!--        <li v-for="item in paths">-->
-<!--          <a class="el-icon-folder-opened">&nbsp;&nbsp; {{item}}</a>-->
-<!--        </li>-->
-<!--      </ul>-->
+      <el-button class="el-upload el-icon-upload" style="font-size: 16px;float: right" type="success" round>{{$t('upload')}}</el-button>
+      <ul>
+        <li style="float: left; margin-right: 5px; list-style: none;" v-for="(item) in headerPaths">
+          <a style="font-size: 16px" class="el-icon-folder-opened" @click="openFileBrowser(null, item.path)">{{item.name}}</a>
+        </li>
+      </ul>
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <span class="el-icon-refresh" @click="openFileBrowser(null, path)">&nbsp;&nbsp;{{$t('refresh')}}</span>
+      <span class="el-icon-refresh" style="font-size: 16px" @click="openFileBrowser(null, path)">&nbsp;&nbsp;{{$t('refresh')}}</span>
         <el-table
             class="app-table"
             size="100%"
             :data="fileBrowserData">
           <el-header></el-header>
-          <el-table-column prop="Name" :label="$t('name')">
+          <el-table-column min-width="150px" prop="Name" :label="$t('name')">
             <template slot-scope="scope">
-              <span class="el-icon-folder" v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
+              <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
               <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="Size" min-width="50" :label="$t('size')"></el-table-column>
-          <el-table-column prop="Mode" width="200" :label="$t('mode')"></el-table-column>
+          <el-table-column prop="Size" width="100px" :label="$t('size')"></el-table-column>
+          <el-table-column prop="Mode" width="100px" :label="$t('mode')"></el-table-column>
           <el-table-column prop="ModTime" :label="$t('mod_time')"></el-table-column>
           <el-table-column prop="Download" :label="$t('operate')" align="center">
             <template slot-scope="scope">
-              <span class="el-icon-download" @click="download(scope.row.Path)"></span>
+              <el-button v-if="scope.row.IsDir" type="success" round style="font-size: 9px" class="el-icon-upload">{{$t('upload')}}</el-button>
+              <span>&nbsp;&nbsp;</span>
+              <el-button style="font-size: 9px" type="primary" round class="el-icon-download" @click="download(scope.row.Path)">{{$t('download')}}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -107,7 +110,7 @@ export default {
       pods: "",
       container:"",
       path: "",
-      paths: [],
+      headerPaths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
     }
@@ -199,6 +202,7 @@ export default {
       this.dialogTerminalVisible = true
       console.log(options, this.namespace,shell)
     },
+
     openFileBrowser(options, path) {
       this.dialogFileBrowserVisible = true
       console.log(options, path)
@@ -209,12 +213,32 @@ export default {
         this.pods = options.Pods
         this.container = options.Container
       }
-
-      this.paths = this.path.split('/')
-      if (this.path === undefined) {
-        this.paths.push("/")
+      this.headerPaths = []
+      this.headerPaths.push(path)
+      if (path !== undefined) {
+        let _p = path.split('/')
+        let _pa = ""
+        this.headerPaths = []
+        _p.forEach((item,index) => {
+          console.log(index, item)
+          if (index === 0) {
+            _pa = "/"
+            item = "/"
+            this.headerPaths.push({
+              name: item,
+              path: _pa,
+            })
+          }
+          if (index !== 0 && item !== "") {
+            _pa += item + "/"
+            this.headerPaths.push({
+              name: item,
+              path: _pa,
+            })
+          }
+        })
       }
-
+      console.log(this.headerPaths)
       this.path = path
       this.fileBrowserData = []
       FileBrowser({

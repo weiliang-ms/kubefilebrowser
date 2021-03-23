@@ -40,7 +40,7 @@ const routes = [
                 path: 'upload',
                 name: 'upload',
                 meta: {
-                    title: i18n.t('upload'),
+                    title: i18n.t('single_pod_file_upload'),
                 },
                 component: _import('upload'),
             },
@@ -56,7 +56,7 @@ const routes = [
                 path: 'download',
                 name: 'download',
                 meta: {
-                    title: i18n.t('download'),
+                    title: i18n.t('file_or_dir_download'),
                 },
                 component: _import('download'),
             },
