@@ -6,13 +6,14 @@ kubernetes container file browser
 
 | 名称 | 类型 | 默认值 |
 | ---- | ---- | ---- |
-| RUN_MODE | string | default:"debug" |
-| HTTP_PORT | string | default:"9999" |
-| HTTP_ADDR | string | default:"0.0.0.0" |
-| LOG_LEVEL | string | default:"debug" |
-| IP_WHITE_LIST | []string | default:"*" |
-| KUBECONFIG | string | default:"~/.kube/config" |
+| RUN_MODE | string | debug |
+| HTTP_PORT | string | 9999 |
+| HTTP_ADDR | string | 0.0.0.0 |
+| LOG_LEVEL | string | debug |
+| IP_WHITE_LIST | []string | * |
+| KUBECONFIG | string | ~/.kube/config |
 
++ 部署在k8s内创建使用管理员权限的serviceaccount即可
 
 ## debug模式启动日志
 
