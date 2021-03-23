@@ -79,7 +79,7 @@
           <el-table-column prop="ModTime" :label="$t('mod_time')"></el-table-column>
           <el-table-column prop="Download" :label="$t('operate')" align="center">
             <template slot-scope="scope">
-              <span class="el-icon-download" @click="download(scope.row.Path+scope.row.Name)"></span>
+              <span class="el-icon-download" @click="download(scope.row.Path)"></span>
             </template>
           </el-table-column>
         </el-table>

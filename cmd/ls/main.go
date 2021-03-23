@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -35,6 +35,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(254)
 	}
+	path = strings.Replace(path, "\\", "/",  -1)
+	path = strings.TrimRight(path, "/")
 	var files []File
 	for _, d := range dir {
 		if d.Name() == "ls" || d.Name() == "ls.exe" {
@@ -42,7 +44,7 @@ func main() {
 		}
 		f := File{
 			Name:    d.Name(),
-			Path:    filepath.Join(path, d.Name()),
+			Path:    fmt.Sprintf("%s/%s", path, d.Name()),
 			Size:    d.Size(),
 			Mode:    d.Mode().String(),
 			ModTime: d.ModTime(),
