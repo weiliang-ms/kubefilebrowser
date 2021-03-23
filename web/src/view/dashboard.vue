@@ -41,6 +41,7 @@
         </el-table>
     </el-card>
     <el-dialog
+      width="80%"
       :title="$t('terminal')"
       :visible.sync="dialogTerminalVisible"
       @close="dialogTerminalVisible = false"
