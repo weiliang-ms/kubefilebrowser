@@ -7,8 +7,15 @@ import (
 )
 
 // 从pod内拷贝到io.Writer
-func (c *copyer) CopyFromPod(dest []string) error {
-	c.Command = append([]string{"tar", "cf", "-"}, dest...)
+func (c *copyer) CopyFromPod(dest []string, style string) error {
+	switch style {
+	case "rar":
+		c.Command = append([]string{"tar", "cf", "-"}, dest...)
+	case "zip":
+		c.Command = append([]string{"/zip"}, dest...)
+	default:
+		c.Command = append([]string{"tar", "cf", "-"}, dest...)
+	}
 	attempts := 3
 	attempt := 0
 	for attempt < attempts {

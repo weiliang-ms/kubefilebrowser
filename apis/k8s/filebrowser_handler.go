@@ -127,23 +127,6 @@ func FileBrowser(c *gin.Context) {
 	render.SetRes(res, nil, 0)
 }
 
-func (query *FileBrowserQuery) copyLs(lsBinary, lsPath string) error {
-	reader, writer := io.Pipe()
-	cp := copyer.NewCopyer(query.Namespace, query.Pods, query.Container, configs.KuBeResConf, configs.RestClient)
-	cp.Stdin = reader
-
-	go func() {
-		defer writer.Close()
-		err := utils.MakeTar(lsBinary, lsPath, writer)
-		if err != nil {
-			logs.Error(err)
-			return
-		}
-	}()
-
-	return cp.CopyToPod(lsPath)
-}
-
 func (query *FileBrowserQuery) exec(command []string) ([]byte, error) {
 	var stdout, stderr bytes.Buffer
 	exec := execer.NewExec(query.Namespace, query.Pods, query.Container, configs.KuBeResConf, configs.RestClient)

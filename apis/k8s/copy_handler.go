@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 	"kubefilebrowser/configs"
 	"kubefilebrowser/utils"
 	"kubefilebrowser/utils/copyer"
+	"kubefilebrowser/utils/execer"
 	"kubefilebrowser/utils/logs"
 	"mime/multipart"
 	"os"
@@ -430,6 +432,7 @@ type CopyFromPodQuery struct {
 	PodName       string   `json:"pod_name" form:"pod_name" binding:"required"`
 	ContainerName string   `json:"container_name" form:"container_name"`
 	DestPath      []string `json:"dest_path" form:"dest_path" binding:"required"`
+	Style         string   `json:"style" form:"style"`
 }
 
 // @Summary Copy2Local
@@ -440,12 +443,15 @@ type CopyFromPodQuery struct {
 // @Param pod_name query CopyFromPodQuery true "pod_name" default(nginx-test-76996486df-tdjdf)
 // @Param container_name query CopyFromPodQuery true "container_name" default(nginx-0)
 // @Param dest_path query CopyFromPodQuery true "dest_path" default(/root)
+// @Param style query CopyFromPodQuery true "style" default(rar)
 // @Success 200 {object} apis.JSONResult
 // @Failure 500 {object} apis.JSONResult
 // @Router /api/k8s/download [get]
 func Copy2Local(c *gin.Context) {
 	render := apis.Gin{C: c}
-	var query CopyFromPodQuery
+	var query = CopyFromPodQuery{
+		Style: "rar",
+	}
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
@@ -478,21 +484,97 @@ func Copy2Local(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
 		return
 	}
-	fileName := fmt.Sprintf("%s.tar", strconv.FormatInt(time.Now().UnixNano(), 10))
+	
+	var isUnix = true
+	for _, value := range pod.Spec.NodeSelector {
+		if strings.Contains(value, "windows") {
+			isUnix = false
+			break
+		}
+	}
+	
+	fileName := fmt.Sprintf("%s.%s", strconv.FormatInt(time.Now().UnixNano(), 10), query.Style)
 	c.Header("Access-Control-Expose-Headers", "Content-Disposition")
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Disposition", "attachment; filename="+fileName)
 	c.Header("X-File-Name", fileName)
 	c.Header("Content-Transfer-Encoding", "binary")
 	c.Header("Cache-Control", "no-cache")
-
-	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
-	cp.Stdout = render.C.Writer
-
-	err = cp.CopyFromPod(query.DestPath)
-	if err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
+	switch query.Style {
+	case "rar":
+		cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
+		cp.Stdout = render.C.Writer
+		err = cp.CopyFromPod(query.DestPath, query.Style)
+		if err != nil {
+			logs.Error(err)
+			render.SetError(utils.CODE_ERR_APP, err)
+			return
+		}
+	case "zip":
+		zipPath := "/zip_linux_amd64"
+		if !isUnix {
+			zipPath = "/zip_windows_amd64.exe"
+		}
+		err = query.copyZipTar(zipPath)
+		if err != nil {
+			logs.Error(err)
+			render.SetError(utils.CODE_ERR_APP, err)
+			return
+		}
+		if isUnix {
+			_cmd := []string{"chmod", "+x", "/zip"}
+			_, err = query.exec(_cmd)
+			if err != nil {
+				logs.Error(err)
+				render.SetError(utils.CODE_ERR_APP, err)
+				return
+			}
+		}
+		
+		cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
+		cp.Stdout = render.C.Writer
+		err = cp.CopyFromPod(query.DestPath, query.Style)
+		if err != nil {
+			logs.Error(err)
+			render.SetError(utils.CODE_ERR_APP, err)
+			return
+		}
+	default:
+		render.SetError(utils.CODE_ERR_MSG, fmt.Errorf("no matching compression type found"))
 		return
 	}
+}
+
+func (query *CopyFromPodQuery) exec(command []string) ([]byte, error) {
+	var stdout, stderr bytes.Buffer
+	exec := execer.NewExec(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
+	exec.Command = command
+	exec.Tty = false
+	exec.Stdout = &stdout
+	exec.Stderr = &stderr
+	err := exec.Exec()
+	if err != nil {
+		logs.Error(stderr.String())
+		return nil, err
+	}
+	if len(stderr.Bytes()) != 0 {
+		return nil, fmt.Errorf(stderr.String())
+	}
+	
+	return stdout.Bytes(), nil
+}
+
+func (query *CopyFromPodQuery) copyZipTar(zipPath string) error {
+	reader, writer := io.Pipe()
+	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
+	cp.Stdin = reader
+	
+	go func() {
+		defer writer.Close()
+		err := utils.TarZip(zipPath, writer)
+		if err != nil {
+			logs.Error(err)
+		}
+	}()
+	return cp.CopyToPod(zipPath)
 }
