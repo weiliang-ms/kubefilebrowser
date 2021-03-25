@@ -3,10 +3,12 @@ import qs from 'qs'
 import Vue from 'vue'
 import i18n from '@/lang'
 import Code from './code.js'
+import http from './http.js';
 
 let API_URL = '/api'
 let CancelToken = axios.CancelToken
 
+Vue.prototype.axios = http;
 Vue.prototype.$CancelAjaxRequet = function() {}
 Vue.prototype.$IsCancel = axios.isCancel
 

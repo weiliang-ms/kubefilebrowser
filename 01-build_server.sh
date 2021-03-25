@@ -43,3 +43,7 @@ for i in $osList; do
     exit 1
   fi
 done
+
+# shellcheck disable=SC2154
+# shellcheck disable=SC2027
+tar zcf $name"_"$version".tar.gz" static $name"_linux-"$version $name"_windows-"$version".exe" $name"_darwin-"$version
