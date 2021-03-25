@@ -41,22 +41,24 @@
         </el-table>
     </el-card>
     <el-dialog
-      width="80%"
-      :title="$t('terminal')"
-      :visible.sync="dialogTerminalVisible"
-      @close="dialogTerminalVisible = false"
-      :before-close="handleClose">
-    <div>
-      <span>前端实现中</span>
-      <div id="terminal-container"></div>
-    </div>
+        :visible.sync="dialogTerminalVisible"
+        :title="$t('terminal')"
+        width="80%"
+        center
+        fullscreen
+        :modal="false"
+        :destroy-on-close="true"
+        @opened="doOpened"
+        @open="doOpen"
+        @close="doClose"
+    >
+      <div ref="terminal" />
     </el-dialog>
     <el-dialog
         width="80%"
         :title="$t('file_browser')"
         :visible.sync="dialogFileBrowserVisible"
-        @close="dialogFileBrowserVisible = false"
-        :before-close="handleClose">
+        @close="dialogFileBrowserVisible = false">
       <el-table-header store>
         <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
           <div class="avatar-wrapper">
@@ -196,7 +198,6 @@
         </el-table-column>
       </el-table>
       <el-table-footer store>
-
       </el-table-footer>
     </el-dialog>
   </div>
@@ -226,6 +227,105 @@ import {GetNamespace} from '../api/namespaces'
 import {GetDeployment} from "../api/deployment";
 import {FileBrowser} from "../api/filebrowser";
 import {FileOrDirUpload} from "../api/upload";
+import { Terminal } from 'xterm'
+import * as fit from 'xterm/lib/addons/fit/fit'
+import { Base64 } from 'js-base64'
+import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
+import * as search from 'xterm/lib/addons/search/search'
+import 'xterm/lib/addons/fullscreen/fullscreen.css'
+import 'xterm/dist/xterm.css'
+
+const defaultTheme = {
+  foreground: '#ffffff', // 字体
+  background: '#1b212f', // 背景色
+  cursor: '#ffffff', // 设置光标
+  selection: 'rgba(255, 255, 255, 0.3)',
+  black: '#000000',
+  brightBlack: '#808080',
+  red: '#ce2f2b',
+  brightRed: '#f44a47',
+  green: '#00b976',
+  brightGreen: '#05d289',
+  yellow: '#e0d500',
+  brightYellow: '#f4f628',
+  magenta: '#bd37bc',
+  brightMagenta: '#d86cd8',
+  blue: '#1d6fca',
+  brightBlue: '#358bed',
+  cyan: '#00a8cf',
+  brightCyan: '#19b8dd',
+  white: '#e5e5e5',
+  brightWhite: '#ffffff'
+}
+const bindTerminalResize = (term, websocket) => {
+  const onTermResize = size => {
+    websocket.send(
+        Base64.encode(
+            JSON.stringify({
+              type: 'resize',
+              rows: size.rows,
+              cols: size.cols
+            })
+        )
+    )
+  }
+  // register resize event.
+  term.on('resize', onTermResize)
+  // unregister resize event when WebSocket closed.
+  websocket.addEventListener('close', function() {
+    term.off('resize', onTermResize)
+  })
+}
+const bindTerminal = (term, websocket, bidirectional, bufferedTime) => {
+  term.socket = websocket
+  let messageBuffer = null
+  const handleWebSocketMessage = function(ev) {
+    if (bufferedTime && bufferedTime > 0) {
+      if (messageBuffer) {
+        messageBuffer += Base64.decode(ev.data)
+      } else {
+        messageBuffer = Base64.decode(ev.data)
+        setTimeout(function() {
+          term.write(messageBuffer)
+        }, bufferedTime)
+      }
+    } else {
+      term.write(Base64.decode(ev.data))
+    }
+  }
+  const handleTerminalData = function(data) {
+    websocket.send(
+        Base64.encode(
+            JSON.stringify({
+              type: 'input',
+              input: data
+            })
+        )
+    )
+  }
+  websocket.onmessage = handleWebSocketMessage
+  if (bidirectional) {
+    term.on('data', handleTerminalData)
+  }
+  // send heartbeat package to avoid closing webSocket connection in some proxy environmental such as nginx.
+  const heartBeatTimer = setInterval(function() {
+    websocket.send(
+        Base64.encode(
+            JSON.stringify({
+              type: 'heartbeat',
+              data: ''
+            })
+        )
+    )
+    // websocket.send('1')
+  }, 20 * 1000)
+  websocket.addEventListener('close', function() {
+    websocket.removeEventListener('message', handleWebSocketMessage)
+    term.off('data', handleTerminalData)
+    delete term.socket
+    clearInterval(heartBeatTimer)
+  })
+}
 
 export default {
   data() {
@@ -245,6 +345,15 @@ export default {
       headerPaths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
+      wsUrl: "",
+      isFullScreen: false,
+      searchKey: '',
+      v: this.visible,
+      ws: null,
+      term: null,
+      thisV: this.visible,
+      rows: 35,
+      cols: 100
     }
   },
   methods: {
@@ -332,7 +441,8 @@ export default {
     },
     openTerminal(options, shell) {
       this.dialogTerminalVisible = true
-      console.log(options, this.namespace,shell)
+      console.log(options, this.namespace, shell)
+      this.wsUrl = "ws://"+window.location.host+"/api/k8s/terminal?namespace="+this.namespace+"&pods="+options.Pods+"&container="+options.Container+"&shell="+shell;
     },
 
     openFileBrowser(options, path) {
@@ -458,6 +568,7 @@ export default {
     uploadFileOrDir(e, path) {
       const files = e.target.files;
       if (files.length === 0 ) {
+        e.target.value = ""
         return
       }
       const formData = new FormData();
@@ -480,15 +591,77 @@ export default {
       })
       e.target.value = ""
     },
-    handleClose(done) {
-      this.$confirm('确认关闭？')
-          .then(_ => {
-            done();
-          })
-          .catch(_ => {});
+
+    onWindowResize() {
+      // console.log("resize")
+      this.term.fit() // it will make terminal resized.
+    },
+    doLink(ev, url) {
+      if (ev.type === 'click') {
+        window.open(url)
+      }
+    },
+    doClose() {
+      window.removeEventListener('resize', this.onWindowResize)
+      // term.off("resize", this.onTerminalResize);
+      if (this.ws) {
+        this.ws.close()
+      }
+      if (this.term) {
+        this.term.dispose()
+      }
+      this.$emit('pclose', false)// 子组件对openStatus修改后向父组件发送事件通知
+    },
+    doOpen() {
+    },
+    doOpened() {
+      Terminal.applyAddon(fit)
+      Terminal.applyAddon(webLinks)
+      Terminal.applyAddon(search)
+      this.term = new Terminal({
+        rendererType: 'canvas', // 渲染类型
+        rows: this.rows,
+        cols: this.cols,
+        convertEol: true, // 启用时，光标将设置为下一行的开头
+        scrollback: 10, // 终端中的回滚量
+        disableStdin: false, // 是否应禁用输入
+        fontSize: 18,
+        cursorBlink: true, // 光标闪烁
+        cursorStyle: 'bar', // 光标样式 underline
+        bellStyle: 'sound',
+        theme: defaultTheme
+      })
+      this.term._initialized = true
+      this.term.prompt = () => {
+        this.term.write('\r\n')
+      }
+      this.term.prompt()
+      this.term.on('key', function(key, ev) {
+        console.log(key, ev, ev.keyCode)
+      })
+      this.term.open(this.$refs.terminal)
+      this.term.webLinksInit(this.doLink)
+      // term.on("resize", this.onTerminalResize);
+      this.term.on('resize', this.onWindowResize)
+      window.addEventListener('resize', this.onWindowResize)
+      this.term.fit() // first resizing
+      this.ws = new WebSocket(this.wsUrl)
+      this.ws.onerror = () => {
+        this.$message.error('ws has no token, please login first')
+        this.$router.push({ name: 'login' })
+      }
+      this.ws.onclose = () => {
+        this.term.setOption('cursorBlink', false)
+        this.$message('console.web_socket_disconnect')
+      }
+      bindTerminal(this.term, this.ws, true, -1)
+      bindTerminalResize(this.term, this.ws)
     }
   },
   watch:{
+    visible(val) {
+      this.v = val// 新增result的watch，监听变更并同步到myResult上
+    },
     deployment:function(val,oldVal){
       let index =  val.indexOf('all'),oldIndex =  oldVal.indexOf('all');
       if(index!==-1 && oldIndex===-1 && val.length>1)

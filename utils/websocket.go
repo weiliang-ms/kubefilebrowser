@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/gorilla/websocket"
 	"kubefilebrowser/utils/logs"
@@ -166,7 +167,7 @@ func (wsConn *WsConnection) WsClose() {
 func WsHandleError(ws *WsConnection, err error) bool {
 	if err != nil {
 		dt := time.Now().Add(time.Second)
-		if err := ws.wsSocket.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
+		if err := ws.wsSocket.WriteMessage(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString([]byte(err.Error())))); err != nil {
 			logs.Error(ws.wsSocket.RemoteAddr(), err)
 		}
 		if err := ws.wsSocket.WriteControl(websocket.CloseMessage, []byte(err.Error()), dt); err != nil {

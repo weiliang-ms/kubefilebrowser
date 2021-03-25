@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	coreV1 "k8s.io/api/core/v1"
@@ -9,6 +10,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"kubefilebrowser/utils"
+	"kubefilebrowser/utils/logs"
 )
 
 // Terminal operating start
@@ -55,7 +57,7 @@ func (handler *StreamHandler) Write(p []byte) (size int, err error) {
 	copyData = make([]byte, len(p))
 	copy(copyData, p)
 	size = len(p)
-	err = handler.WsConn.WsWrite(websocket.TextMessage, copyData)
+	err = handler.WsConn.WsWrite(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(copyData)))
 	return
 }
 
@@ -72,8 +74,12 @@ func (handler *StreamHandler) Read(p []byte) (size int, err error) {
 	if msg, err = handler.WsConn.WsRead(); err != nil {
 		return
 	}
-
-	if err = json.Unmarshal(msg.Data, &xtermMsg); err != nil {
+	decodeBytes, err := base64.StdEncoding.DecodeString(string(msg.Data))
+	if err != nil {
+		logs.Error("websock cmd string base64 decoding failed", err)
+		return 0, err
+	}
+	if err = json.Unmarshal(decodeBytes, &xtermMsg); err != nil {
 		return
 	}
 	//web ssh调整了终端大小
