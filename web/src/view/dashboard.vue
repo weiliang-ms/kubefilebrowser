@@ -83,7 +83,22 @@
             <template slot-scope="scope">
               <el-button v-if="scope.row.IsDir" type="success" round style="font-size: 9px" class="el-icon-upload">{{$t('upload')}}</el-button>
               <span>&nbsp;&nbsp;</span>
-              <el-button style="font-size: 9px" type="primary" round class="el-icon-download" @click="download(scope.row.Path)">{{$t('download')}}</el-button>
+              <el-dropdown type="primary" class="avatar-container" trigger="click">
+                <div class="avatar-wrapper">
+                  <el-button type="primary" round class="el-icon-download" size="medium">
+                    {{ $t('download') }}
+                    <i class="el-icon-caret-bottom" />
+                  </el-button>
+                </div>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item>
+                    <span style="display:block;" @click="download(scope.row.Path, 'tar')">TAR{{ $t('download') }}</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided>
+                    <span style="display:block;" @click="download(scope.row.Path, 'zip')">ZIP{{ $t('download') }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -258,8 +273,8 @@ export default {
         alert(err.info.message)
       })
     },
-    download(path) {
-      const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path;
+    download(path, style) {
+      const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path+"&style="+style;
       const xhr = new XMLHttpRequest();
       xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
       xhr.responseType = "blob";    // 返回类型blob

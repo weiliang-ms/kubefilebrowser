@@ -9,7 +9,7 @@ import (
 // 从pod内拷贝到io.Writer
 func (c *copyer) CopyFromPod(dest []string, style string) error {
 	switch style {
-	case "rar":
+	case "tar":
 		c.Command = append([]string{"tar", "cf", "-"}, dest...)
 	case "zip":
 		c.Command = append([]string{"/zip"}, dest...)

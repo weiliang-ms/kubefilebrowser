@@ -501,7 +501,7 @@ func Copy2Local(c *gin.Context) {
 	c.Header("Content-Transfer-Encoding", "binary")
 	c.Header("Cache-Control", "no-cache")
 	switch query.Style {
-	case "rar":
+	case "tar":
 		cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
 		cp.Stdout = render.C.Writer
 		err = cp.CopyFromPod(query.DestPath, query.Style)
