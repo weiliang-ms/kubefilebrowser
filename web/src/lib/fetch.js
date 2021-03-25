@@ -56,7 +56,6 @@ export function post(url, data, params, headers) {
     if (!params) {
         params = {}
     }
-    params = qs.stringify(params, {arrayFormat: 'repeat'})
     params._t = new Date().getTime()
     let config = {
         method: 'post',

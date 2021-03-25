@@ -51,9 +51,9 @@
 </template>
 
 <script>
-import { GetNamespace } from '@/api/namespaces'
-import {GetPods} from "@/api/pods"
-import {FileOrDirUpload} from "@/api/upload"
+import { GetNamespace } from '../api/namespaces'
+import {GetPods} from "../api/pods"
+import {FileOrDirUpload} from "../api/upload"
 
 export default {
   data() {

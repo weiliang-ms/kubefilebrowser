@@ -58,7 +58,28 @@
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
       <el-table-header store>
-        <el-button class="el-upload el-icon-upload" style="height: 36px;float: right;margin-bottom: 10px;" type="success" round>{{$t('upload')}}</el-button>
+        <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
+          <div class="avatar-wrapper">
+            <el-button type="success" round class="el-icon-upload" size="medium">
+              {{ $t('upload') }}
+              <i class="el-icon-caret-bottom" />
+            </el-button>
+          </div>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>
+                  <span class="fake-file-btn">
+                    {{ $t('upload_file') }}
+                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" multiple="true">
+                  </span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+                  <span class="fake-file-btn">
+                    {{ $t('upload_dir') }}
+                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" webkitdirectory mozdirectory accept="*/*">
+                  </span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
         <el-dropdown type="primary" class="el-upload avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
           <div class="avatar-wrapper">
             <el-button type="primary" round class="el-icon-download" size="medium">
@@ -130,8 +151,31 @@
             :label="$t('operate')" align="center"
         >
           <template slot-scope="scope">
-            <el-button v-if="scope.row.IsDir" type="success" round style="font-size: 9px;height: 36px;" class="el-icon-upload">{{$t('upload')}}</el-button>
-            <span>&nbsp;&nbsp;</span>
+            <el-dropdown v-if="scope.row.IsDir" type="success" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
+              <div class="avatar-wrapper">
+                <el-button type="success" round class="el-icon-upload" size="medium">
+                  {{ $t('upload') }}
+                  <i class="el-icon-caret-bottom" />
+                </el-button>
+              </div>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>
+                  <span class="fake-file-btn">
+                    {{ $t('upload_file') }}
+                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" multiple="true">
+                  </span>
+                </el-dropdown-item>
+                <el-dropdown-item divided>
+                  <span class="fake-file-btn">
+                    {{ $t('upload_dir') }}
+                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" webkitdirectory mozdirectory accept="*/*">
+                  </span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+            <span>
+              &nbsp;&nbsp;
+            </span>
             <el-dropdown type="primary" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
               <div class="avatar-wrapper">
                 <el-button type="primary" round class="el-icon-download" size="medium">
@@ -159,11 +203,29 @@
 </template>
 
 
+<style>
+.fake-file-btn {
+}
+.fake-file-btn:active {
+  box-shadow: 0 1px 5px 1px rgba(0, 255, 255, 0.3) inset;
+}
+.fake-file-btn input[type=file] {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer
+}
+</style>
+
 <script>
 import {GetStatus} from '../api/status'
 import {GetNamespace} from '../api/namespaces'
 import {GetDeployment} from "../api/deployment";
 import {FileBrowser} from "../api/filebrowser";
+import {FileOrDirUpload} from "../api/upload";
 
 export default {
   data() {
@@ -179,6 +241,7 @@ export default {
       container:"",
       path: "",
       bulkPath: [],
+      globalPath: "",
       headerPaths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
@@ -283,6 +346,7 @@ export default {
         this.container = options.Container
       }
       this.headerPaths = []
+      this.globalPath=path
       this.headerPaths.push(path)
       if (path !== undefined) {
         let _p = path.split('/')
@@ -390,6 +454,31 @@ export default {
       };
       // 发送ajax请求
       xhr.send()
+    },
+    uploadFileOrDir(e, path) {
+      const files = e.target.files;
+      if (files.length === 0 ) {
+        return
+      }
+      const formData = new FormData();
+      //追加文件数据
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+      FileOrDirUpload(formData, {
+        namespace:this.namespace,
+        pod_name:this.pods,
+        container_name:this.container,
+        dest_path:path},{"Content-Type":"multipart/form-data"}).then((res) => {
+        if (res.failure !== undefined) {
+          alert(res.failure)
+        }else {
+          alert(res.success)
+        }
+      }, (err) => {
+        alert(err.info.message)
+      })
+      e.target.value = ""
     },
     handleClose(done) {
       this.$confirm('确认关闭？')

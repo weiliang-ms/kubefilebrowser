@@ -26,11 +26,11 @@ func (c *copyer) CopyToPod(dest string) error {
 	}
 	if len(stderr) != 0 {
 		logs.Warn(string(stderr))
-		for _, line := range strings.Split(string(stderr), "\n"){
+		for _, line := range strings.Split(string(stderr), "\n") {
 			if len(strings.TrimSpace(line)) == 0 {
 				continue
 			}
-			if !strings.Contains(line, "removing") {
+			if !strings.Contains(strings.ToLower(line), "removing") {
 				return fmt.Errorf(line)
 			}
 		}

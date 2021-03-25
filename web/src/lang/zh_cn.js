@@ -57,4 +57,6 @@ export default {
     'unknown_error': '未知错误',
     'upload': '上传',
     'upload_all': '全部上传',
+    'upload_dir': '上传文件夹',
+    'upload_file': '上传文件',
 }

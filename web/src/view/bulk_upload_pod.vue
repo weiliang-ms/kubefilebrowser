@@ -47,9 +47,9 @@
 </template>
 
 <script>
-import { GetNamespace } from '@/api/namespaces'
-import {GetPods} from "@/api/pods"
-import {MultiUpload} from "@/api/multiupload"
+import { GetNamespace } from '../api/namespaces'
+import {GetPods} from "../api/pods"
+import {MultiUpload} from "../api/multiupload"
 
 export default {
   data() {
