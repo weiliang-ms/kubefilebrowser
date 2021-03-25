@@ -114,22 +114,7 @@ paths:
         required: true
         type: string
       - in: query
-        name: container_name
-        type: string
-      - collectionFormat: multi
-        in: query
-        items:
-          type: string
-        name: dest_path
-        required: true
-        type: array
-      - in: query
-        name: namespace
-        required: true
-        type: string
-      - in: query
-        name: pod_name
-        required: true
+        name: style
         type: string
       - in: query
         name: container_name
@@ -150,6 +135,9 @@ paths:
         required: true
         type: string
       - in: query
+        name: style
+        type: string
+      - in: query
         name: container_name
         type: string
       - collectionFormat: multi
@@ -166,6 +154,51 @@ paths:
       - in: query
         name: pod_name
         required: true
+        type: string
+      - in: query
+        name: style
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: dest_path
+        required: true
+        type: array
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: style
+        type: string
+      - in: query
+        name: container_name
+        type: string
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
+        name: dest_path
+        required: true
+        type: array
+      - in: query
+        name: namespace
+        required: true
+        type: string
+      - in: query
+        name: pod_name
+        required: true
+        type: string
+      - in: query
+        name: style
         type: string
       responses:
         "200":
@@ -634,9 +667,12 @@ paths:
     get:
       description: 获取pod中container状态
       parameters:
-      - in: query
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
         name: deployment
-        type: string
+        type: array
       - in: query
         name: field_selector
         type: string
@@ -647,9 +683,12 @@ paths:
         name: namespace
         required: true
         type: string
-      - in: query
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
         name: deployment
-        type: string
+        type: array
       - in: query
         name: field_selector
         type: string
@@ -660,9 +699,12 @@ paths:
         name: namespace
         required: true
         type: string
-      - in: query
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
         name: deployment
-        type: string
+        type: array
       - in: query
         name: field_selector
         type: string
@@ -673,9 +715,12 @@ paths:
         name: namespace
         required: true
         type: string
-      - in: query
+      - collectionFormat: multi
+        in: query
+        items:
+          type: string
         name: deployment
-        type: string
+        type: array
       - in: query
         name: field_selector
         type: string

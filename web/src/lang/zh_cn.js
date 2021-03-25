@@ -1,5 +1,9 @@
 export default {
     'add': '添加',
+    'bulk_upload': '批量上传',
+    'bulk_download': '批量下载',
+    'bulk_upload_container': '批量上传到Container',
+    'bulk_upload_pod': '批量上传到Pod',
     'cannot_empty': '不能为空',
     'cancel': '取消',
     'cancel_all': '全部取消',
@@ -30,7 +34,7 @@ export default {
     'more': '更多',
     'mode': '权限',
     'mod_time': '最后修改时间',
-    'multiupload': '多Pod文件上传',
+    'multi_upload': '多Pod文件上传',
     'operate_success': '操作成功',
     'operate': '操作',
     'os': '系统类型',
@@ -52,6 +56,5 @@ export default {
     'terminal': '终端命令行',
     'unknown_error': '未知错误',
     'upload': '上传',
-    'single_pod_file_upload': '单Pod文件上传',
     'upload_all': '全部上传',
 }

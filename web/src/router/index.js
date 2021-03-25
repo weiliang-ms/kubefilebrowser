@@ -27,38 +27,32 @@ const routes = [
         ],
     },
     {
-        path: '/copy',
-        name: 'copy',
-        title: i18n.t('copy'),
+        path: '/bulk_upload',
+        name: 'bulk_upload',
+        title: i18n.t('bulk_upload'),
         component: _import('layer'),
         meta: {
-            title: i18n.t('copy'),
+            title: i18n.t('bulk_upload'),
             icon: 'el-icon-upload',
         },
         children: [
             {
-                path: 'upload',
-                name: 'upload',
+                path: 'bulk_upload_pod',
+                name: 'bulk_upload_pod',
                 meta: {
-                    title: i18n.t('single_pod_file_upload'),
+                    title: i18n.t('bulk_upload_pod'),
+                    icon: 'el-icon-upload2',
                 },
-                component: _import('upload'),
+                component: _import('bulk_upload_pod'),
             },
             {
-                path: 'multiupload',
-                name: 'multiupload',
+                path: 'bulk_upload_container',
+                name: 'bulk_upload_container',
                 meta: {
-                    title: i18n.t('multiupload'),
+                    title: i18n.t('bulk_upload_container'),
+                    icon: 'el-icon-upload2',
                 },
-                component: _import('multiupload'),
-            },
-            {
-                path: 'download',
-                name: 'download',
-                meta: {
-                    title: i18n.t('file_or_dir_download'),
-                },
-                component: _import('download'),
+                component: _import('bulk_upload_container'),
             },
         ],
     }

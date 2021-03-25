@@ -56,11 +56,15 @@ export function post(url, data, params, headers) {
     if (!params) {
         params = {}
     }
+    params = qs.stringify(params, {arrayFormat: 'repeat'})
     params._t = new Date().getTime()
     let config = {
         method: 'post',
         url: url,
         params,
+        paramsSerializer: params => {
+            return qs.stringify(params, { indices: false})
+        }
     }
     if (data) {
         if (headers && headers['Content-Type'] === 'multipart/form-data') {
@@ -87,10 +91,14 @@ export function get(url, params, headers) {
         params = {}
     }
     params._t = new Date().getTime()
+    // params = qs.stringify(params, {arrayFormat: 'repeat'})
     let config = {
         method: 'get',
         url: url,
         params,
+        paramsSerializer: params => {
+            return qs.stringify(params, { indices: false})
+        }
     }
     if (headers) {
         config.headers = headers

@@ -57,51 +57,103 @@
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false"
         :before-close="handleClose">
-      <el-button class="el-upload el-icon-upload" style="font-size: 16px;float: right" type="success" round>{{$t('upload')}}</el-button>
-      <ul>
-        <li style="float: left; margin-right: 5px; list-style: none;" v-for="(item) in headerPaths">
-          <a style="font-size: 16px" class="el-icon-folder-opened" @click="openFileBrowser(null, item.path)">{{item.name}}</a>
-        </li>
-      </ul>
-      &nbsp;&nbsp;&nbsp;&nbsp;
-      <span class="el-icon-refresh" style="font-size: 16px" @click="openFileBrowser(null, path)">&nbsp;&nbsp;{{$t('refresh')}}</span>
-        <el-table
-            class="app-table"
-            size="100%"
-            :data="fileBrowserData">
-          <el-header></el-header>
-          <el-table-column min-width="150px" prop="Name" :label="$t('name')">
-            <template slot-scope="scope">
-              <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
-              <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="Size" width="100px" :label="$t('size')"></el-table-column>
-          <el-table-column prop="Mode" width="100px" :label="$t('mode')"></el-table-column>
-          <el-table-column prop="ModTime" :label="$t('mod_time')"></el-table-column>
-          <el-table-column prop="Download" :label="$t('operate')" align="center">
-            <template slot-scope="scope">
-              <el-button v-if="scope.row.IsDir" type="success" round style="font-size: 9px" class="el-icon-upload">{{$t('upload')}}</el-button>
-              <span>&nbsp;&nbsp;</span>
-              <el-dropdown type="primary" class="avatar-container" trigger="click">
-                <div class="avatar-wrapper">
-                  <el-button type="primary" round class="el-icon-download" size="medium">
-                    {{ $t('download') }}
-                    <i class="el-icon-caret-bottom" />
-                  </el-button>
-                </div>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>
-                    <span style="display:block;" @click="download(scope.row.Path, 'tar')">TAR{{ $t('download') }}</span>
-                  </el-dropdown-item>
-                  <el-dropdown-item divided>
-                    <span style="display:block;" @click="download(scope.row.Path, 'zip')">ZIP{{ $t('download') }}</span>
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </template>
-          </el-table-column>
-        </el-table>
+      <el-table-header store>
+        <el-button class="el-upload el-icon-upload" style="height: 36px;float: right;margin-bottom: 10px;" type="success" round>{{$t('upload')}}</el-button>
+        <el-dropdown type="primary" class="el-upload avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
+          <div class="avatar-wrapper">
+            <el-button type="primary" round class="el-icon-download" size="medium">
+              {{ $t('bulk_download') }}
+              <i class="el-icon-caret-bottom" />
+            </el-button>
+          </div>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>
+              <span style="display:block;" @click="bulkDownload(bulkPath, 'tar')">TAR{{ $t('download') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+              <span style="display:block;" @click="bulkDownload(bulkPath, 'zip')">ZIP{{ $t('download') }}</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
+        <ul>
+          <li style="float: left; margin-top: 10px; list-style: none;" v-for="(item) in headerPaths">
+            <a style="margin-right: 5px; font-size: 16px" class="el-icon-folder-opened" @click="openFileBrowser(null, item.path)">{{item.name}}</a>
+          </li>
+        </ul>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="float: left; margin-bottom: 10px;height: 16px;width: 16px;">
+          <el-button type="info" icon="el-icon-refresh" circle @click="openFileBrowser(null, path)"></el-button>
+        </span>
+      </el-table-header>
+      <el-table
+          class="app-table"
+          size="100%"
+          :data="fileBrowserData"
+          @selection-change="handleSelectionChange"
+          :default-sort="{prop: 'Name', order: 'ascending'}">
+        <el-table-column type="selection"></el-table-column>
+        <el-table-column
+            min-width="80px"
+            prop="Name"
+            :label="$t('name')"
+            sortable
+            :sort-orders="['ascending', 'descending']"
+        >
+          <template slot-scope="scope">
+            <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
+            <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+            prop="Size"
+            width="100px"
+            :label="$t('size')"
+            sortable
+            :sort-orders="['ascending', 'descending']"
+        >
+        </el-table-column>
+        <el-table-column
+            prop="Mode"
+            width="100px"
+            :label="$t('mode')"
+        >
+        </el-table-column>
+        <el-table-column
+            prop="ModTime"
+            :label="$t('mod_time')"
+            sortable
+            :sort-orders="['ascending', 'descending']"
+        >
+        </el-table-column>
+        <el-table-column
+            prop="Download"
+            :label="$t('operate')" align="center"
+        >
+          <template slot-scope="scope">
+            <el-button v-if="scope.row.IsDir" type="success" round style="font-size: 9px;height: 36px;" class="el-icon-upload">{{$t('upload')}}</el-button>
+            <span>&nbsp;&nbsp;</span>
+            <el-dropdown type="primary" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
+              <div class="avatar-wrapper">
+                <el-button type="primary" round class="el-icon-download" size="medium">
+                  {{ $t('download') }}
+                  <i class="el-icon-caret-bottom" />
+                </el-button>
+              </div>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>
+                  <span style="display:block;" @click="download(scope.row.Path, 'tar')">TAR{{ $t('download') }}</span>
+                </el-dropdown-item>
+                <el-dropdown-item divided>
+                  <span style="display:block;" @click="download(scope.row.Path, 'zip')">ZIP{{ $t('download') }}</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-table-footer store>
+
+      </el-table-footer>
     </el-dialog>
   </div>
 </template>
@@ -126,6 +178,7 @@ export default {
       pods: "",
       container:"",
       path: "",
+      bulkPath: [],
       headerPaths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
@@ -273,7 +326,47 @@ export default {
         alert(err.info.message)
       })
     },
+    handleSelectionChange(val) {
+      this.bulkPath = []
+      val.forEach((item) => {
+        this.bulkPath.push(item.Path)
+      })
+    },
     download(path, style) {
+      const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path+"&style="+style;
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
+      xhr.responseType = "blob";    // 返回类型blob
+      xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+      // 定义请求完成的处理函数，请求前也可以增加加载框/禁用下载按钮逻辑
+      xhr.onload = function () {
+        // 请求完成
+        if (this.status === 200) {
+          // 返回200
+          let content = xhr.response;
+          let eLink = document.createElement('a');
+          eLink.download = this.getResponseHeader('X-File-Name');
+          eLink.style.display = 'none';
+          let blob = new Blob([content]);
+          eLink.href = URL.createObjectURL(blob);
+          document.body.appendChild(eLink);
+          eLink.click();
+          document.body.removeChild(eLink);
+        }
+      };
+      // 发送ajax请求
+      xhr.send()
+    },
+    bulkDownload(paths, style) {
+      if (paths.length === 0) {
+        alert(this.$t('cannot_empty'))
+        return
+      }
+      let path = ""
+      paths.forEach(item => {
+        path += "&dest_path="+item
+      })
+      console.log(path)
       const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path+"&style="+style;
       const xhr = new XMLHttpRequest();
       xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口

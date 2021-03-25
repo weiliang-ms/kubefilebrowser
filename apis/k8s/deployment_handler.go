@@ -29,8 +29,8 @@ type ListDeploymentQuery struct {
 // @Router /api/k8s/deployment [get]
 func ListNamespaceAllDeployment(c *gin.Context) {
 	render := apis.Gin{C: c}
-	var listDeploymentQuery ListDeploymentQuery
-	if err := c.ShouldBindQuery(&listDeploymentQuery); err != nil {
+	var query ListDeploymentQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
@@ -39,8 +39,8 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 	if _, ok := c.GetQuery("namespace"); !ok {
 		res, err := configs.RestClient.AppsV1().Deployments(metaV1.NamespaceAll).
 			List(context.TODO(), metaV1.ListOptions{
-				LabelSelector: listDeploymentQuery.LabelSelector,
-				FieldSelector: listDeploymentQuery.FieldSelector,
+				LabelSelector: query.LabelSelector,
+				FieldSelector: query.FieldSelector,
 			})
 		if err != nil {
 			logs.Error(err)
@@ -51,17 +51,17 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 		return
 	}
 	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), listDeploymentQuery.Namespace, metaV1.GetOptions{})
+		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 	if _, ok := c.GetQuery("deployment"); !ok {
-		res, err := configs.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
+		res, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
-				LabelSelector: listDeploymentQuery.LabelSelector,
-				FieldSelector: listDeploymentQuery.FieldSelector,
+				LabelSelector: query.LabelSelector,
+				FieldSelector: query.FieldSelector,
 			})
 		if err != nil {
 			logs.Error(err)
@@ -71,8 +71,8 @@ func ListNamespaceAllDeployment(c *gin.Context) {
 		render.SetJson(res)
 		return
 	}
-	res, err := configs.RestClient.AppsV1().Deployments(listDeploymentQuery.Namespace).
-		Get(context.TODO(), listDeploymentQuery.Deployment, metaV1.GetOptions{})
+	res, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
+		Get(context.TODO(), query.Deployment, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)

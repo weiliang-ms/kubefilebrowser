@@ -169,6 +169,11 @@ var doc = `{
                     },
                     {
                         "type": "string",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -196,6 +201,11 @@ var doc = `{
                     },
                     {
                         "type": "string",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -223,6 +233,11 @@ var doc = `{
                     },
                     {
                         "type": "string",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -247,6 +262,43 @@ var doc = `{
                         "name": "pod_name",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "style",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "container_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "name": "dest_path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "pod_name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "style",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -978,7 +1030,11 @@ var doc = `{
                 "summary": "PodStatus",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "deployment",
                         "in": "query"
                     },
@@ -999,7 +1055,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "deployment",
                         "in": "query"
                     },
@@ -1020,7 +1080,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "deployment",
                         "in": "query"
                     },
@@ -1041,7 +1105,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "deployment",
                         "in": "query"
                     },

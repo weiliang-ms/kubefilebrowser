@@ -29,22 +29,25 @@ func init() {
 	}
 }
 
+var denyFileOrList = []string{"/ls", "/ls.exe", "/zip", "/zip.exe"}
+
 func main() {
 	dir, err := ioutil.ReadDir(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(254)
 	}
-	path = strings.Replace(path, "\\", "/",  -1)
+	path = strings.Replace(path, "\\", "/", -1)
 	path = strings.TrimRight(path, "/")
 	var files []File
 	for _, d := range dir {
-		if d.Name() == "ls" || d.Name() == "ls.exe" {
+		p := fmt.Sprintf("%s/%s", path, d.Name())
+		if inSlice(p, denyFileOrList) {
 			continue
 		}
 		f := File{
 			Name:    d.Name(),
-			Path:    fmt.Sprintf("%s/%s", path, d.Name()),
+			Path:    p,
 			Size:    d.Size(),
 			Mode:    d.Mode().String(),
 			ModTime: d.ModTime(),
@@ -55,8 +58,17 @@ func main() {
 	}
 	s, err := json.Marshal(files)
 	if err != nil {
-		fmt.Println(err.Error())
+		_, _ = fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(253)
 	}
 	fmt.Println(string(s))
+}
+
+func inSlice(v string, sl []string) bool {
+	for _, vv := range sl {
+		if vv == v {
+			return true
+		}
+	}
+	return false
 }

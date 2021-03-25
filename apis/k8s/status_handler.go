@@ -19,7 +19,7 @@ import (
 
 type StatusQuery struct {
 	Namespace     string `json:"namespace" form:"namespace" binding:"required"`
-	Deployment    string `json:"deployment" form:"deployment" `
+	Deployment    []string `json:"deployment" form:"deployment" `
 	FieldSelector string `json:"field_selector" form:"field_selector"`
 	LabelSelector string `json:"label_selector" form:"label_selector"`
 }
@@ -56,15 +56,15 @@ type ResContainer struct {
 // @Router /api/k8s/status [get]
 func PodStatus(c *gin.Context) {
 	render := apis.Gin{C: c}
-	var statusQuery StatusQuery
-	if err := c.ShouldBindQuery(&statusQuery); err != nil {
+	var query StatusQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
 
 	if _, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), statusQuery.Namespace, metaV1.GetOptions{}); err != nil {
+		Get(context.TODO(), query.Namespace, metaV1.GetOptions{}); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
@@ -73,8 +73,8 @@ func PodStatus(c *gin.Context) {
 	var deployments []appsV1.Deployment
 	_d, ok := c.GetQuery("deployment")
 	if ok && _d != "" {
-		for _, d := range strings.Split(statusQuery.Deployment, ",") {
-			deployment, err := configs.RestClient.AppsV1().Deployments(statusQuery.Namespace).
+		for _, d := range query.Deployment {
+			deployment, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
 				Get(context.TODO(), d, metaV1.GetOptions{})
 			if err != nil {
 				logs.Error(err)
@@ -83,10 +83,10 @@ func PodStatus(c *gin.Context) {
 			deployments = append(deployments, *deployment)
 		}
 	} else {
-		deploymentList, err := configs.RestClient.AppsV1().Deployments(statusQuery.Namespace).
+		deploymentList, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
-				LabelSelector: statusQuery.LabelSelector,
-				FieldSelector: statusQuery.FieldSelector,
+				LabelSelector: query.LabelSelector,
+				FieldSelector: query.FieldSelector,
 			})
 		if err != nil {
 			logs.Error(err)
