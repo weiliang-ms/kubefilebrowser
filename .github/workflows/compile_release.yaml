@@ -1,0 +1,93 @@
+name: Compile the release package
+on:
+  push:
+    tags:
+      - "v*"
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Go
+        id: install_golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: "v1.16.2"
+      - name: Install Yarn
+        id: install_yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: "v14.7.0"
+      - name: Clone code
+        id: clone_code
+        uses: actions/checkout@master
+      - name: Install tools
+        id: install_tools
+        run: |
+          sudo -E apt-get update
+          sudo -E apt-get install -y *w64-x86* *w64-i686* upx
+      - name: Set env
+        run: |
+          echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})
+          echo "::set-env name=FIRMWARE::$PWD"
+      - name: Install go mod
+        id: install_gomod
+        run: |
+          cd ${{ env.FIRMWARE }}
+          go get -u github.com/swaggo/swag/cmd/swag
+          chmod +x *.sh
+          ./00-build_lib.sh
+          cd cmd/ls && go get && cd -
+          cd cmd/zip && go get && cd -
+          cd ${{ env.FIRMWARE }}
+          go get ./...
+      #- name: Setup Debug Session
+      #  uses: csexton/debugger-action@master
+      - name: Build front-end
+        id: build_front-end
+        run: |
+          cd ${{ env.FIRMWARE }}/web
+          yarn install
+          yarn run build
+          echo "::set-output name=status::success"
+      - name: Build back-end
+        id: build_back-end
+        if: steps.build_front-end.outputs.status == 'success' && !cancelled()
+        run: |
+          cd ${{ env.FIRMWARE }}
+          export PATH=$GOPATH/bin:$PATH
+          swag init -g cmd/server/main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/linux/amd64/kubefilebrowser cmd/server/main.go
+          upx --lzma release/linux/amd64/kubefilebrowser
+          cp -r static release/linux/amd64/
+
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/windows/amd64/kubefilebrowser.exe cmd/server/main.go
+          upx --lzma release/windows/amd64/kubefilebrowser.exe
+          cp -r static release/windows/amd64/
+
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/darwin/amd64/kubefilebrowser cmd/server/main.go
+          upx --lzma release/darwin/amd64/kubefilebrowser
+          cp -r static release/darwin/amd64/
+
+          echo "::set-output name=status::success"
+      - name: Packed binary
+        id: packed_binary
+        if: steps.build_back-end.outputs.status == 'success' && !cancelled()
+        run: |
+          mkdir -p publish
+          tar -zcf publish/kubefilebrowser_windows_amd64.tar.gz -C release/windows/amd64
+          tar -zcf publish/kubefilebrowser_linux_amd64.tar.gz -C release/linux/amd64
+          tar -zcf publish/kubefilebrowser_darwin_amd64.tar.gz -C release/darwin/amd64
+          shasum publish/*.tar.gz > publish/kubefilebrowser-${{ env.RELEASE_VERSION }}-checksums.txt
+          echo "::set-output name=status::success"
+      - name: Push release
+        uses: svenstaro/upload-release-action@v1-release
+        if: steps.packed_binary.outputs.status == 'success' && !cancelled()
+        with:
+          repo_token: ${{ secrets.REPO_TOKEN }}
+          file: ${{ env.FIRMWARE }}/publish/*
+          tag: ${{ env.RELEASE_VERSION }}
+          overwrite: true
+          file_glob: true
