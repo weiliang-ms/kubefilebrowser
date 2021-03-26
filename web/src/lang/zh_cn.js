@@ -59,4 +59,6 @@ export default {
     'upload_all': '全部上传',
     'upload_dir': '上传文件夹',
     'upload_file': '上传文件',
+    'web_socker_connection_failed': 'websocket 连接失败',
+    'web_socket_disconnect': 'websocket 断开连接',
 }

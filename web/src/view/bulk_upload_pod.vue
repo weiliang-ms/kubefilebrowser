@@ -11,7 +11,7 @@
           ></el-option>
         </el-select>
         &nbsp;&nbsp;
-        <el-select :placeholder="$t('please_select_pod')" multiple v-model="pod">
+        <el-select :placeholder="$t('please_select_pod')" filterable multiple v-model="pod">
           <el-option :label="$t('check_all')" value="all"></el-option>
           <el-option v-for="item in pods" :label="item.label" :value="item.value" :key="item.value"></el-option>
         </el-select>

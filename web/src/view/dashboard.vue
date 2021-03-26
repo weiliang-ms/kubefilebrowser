@@ -10,7 +10,7 @@
           ></el-option>
         </el-select>
         &nbsp;&nbsp;
-        <el-select :placeholder="$t('please_select_deployment')" multiple v-model="deployment" @change="selecteddeployment">
+        <el-select :placeholder="$t('please_select_deployment')" filterable multiple v-model="deployment" @change="selecteddeployment">
           <el-option :label="$t('check_all')" value="all"></el-option>
           <el-option v-for="item in deployments" :label="item.label" :value="item.value" :key="item.value"></el-option>
         </el-select>
@@ -43,48 +43,50 @@
     <el-dialog
         :visible.sync="dialogTerminalVisible"
         :title="$t('terminal')"
-        width="80%"
         center
         fullscreen
         :modal="false"
         :destroy-on-close="true"
         @opened="doOpened"
-        @open="doOpen"
         @close="doClose"
     >
-      <div ref="terminal" />
+      <div style="margin-top: -25px;">
+        <div ref="terminal" />
+      </div>
     </el-dialog>
     <el-dialog
-        width="80%"
+        center
+        fullscreen
         :title="$t('file_browser')"
         :visible.sync="dialogFileBrowserVisible"
         @close="dialogFileBrowserVisible = false">
-      <el-table-header store>
-        <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
+      <div style="margin-top: -25px;">
+        <el-table-header store>
+          <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
+            <div class="avatar-wrapper">
+              <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">
+                {{ $t('upload') }}
+                <i class="el-icon-caret-bottom" />
+              </el-button>
+            </div>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <span class="fake-file-btn">
+                  {{ $t('upload_file') }}
+                  <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" multiple="true">
+                </span>
+              </el-dropdown-item>
+              <el-dropdown-item divided>
+                <span class="fake-file-btn">
+                  {{ $t('upload_dir') }}
+                  <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" webkitdirectory mozdirectory accept="*/*">
+                </span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+          <el-dropdown type="primary" class="el-upload avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
           <div class="avatar-wrapper">
-            <el-button type="success" round class="el-icon-upload" size="medium">
-              {{ $t('upload') }}
-              <i class="el-icon-caret-bottom" />
-            </el-button>
-          </div>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>
-                  <span class="fake-file-btn">
-                    {{ $t('upload_file') }}
-                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" multiple="true">
-                  </span>
-            </el-dropdown-item>
-            <el-dropdown-item divided>
-                  <span class="fake-file-btn">
-                    {{ $t('upload_dir') }}
-                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, globalPath)" name="files" webkitdirectory mozdirectory accept="*/*">
-                  </span>
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-        <el-dropdown type="primary" class="el-upload avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
-          <div class="avatar-wrapper">
-            <el-button type="primary" round class="el-icon-download" size="medium">
+            <el-button style="width: 120px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="primary" round class="el-icon-download" size="medium">
               {{ $t('bulk_download') }}
               <i class="el-icon-caret-bottom" />
             </el-button>
@@ -104,101 +106,103 @@
           </li>
         </ul>
         &nbsp;&nbsp;&nbsp;&nbsp;
-        <span style="float: left; margin-bottom: 10px;height: 16px;width: 16px;">
-          <el-button type="info" icon="el-icon-refresh" circle @click="openFileBrowser(null, path)"></el-button>
-        </span>
-      </el-table-header>
-      <el-table
-          class="app-table"
-          size="100%"
-          :data="fileBrowserData"
-          @selection-change="handleSelectionChange"
-          :default-sort="{prop: 'Name', order: 'ascending'}">
-        <el-table-column type="selection"></el-table-column>
-        <el-table-column
+          <span style="float: left;">
+            <el-button type="info" style="padding: 3px;margin-top: 8px;" icon="el-icon-refresh" circle @click="openFileBrowser(null, path)"></el-button>
+          </span>
+        </el-table-header>
+        <el-table
+            class="app-table"
+            size="100%"
+            :cell-style="{padding:'6px 0'}"
+            :data="fileBrowserData"
+            @selection-change="handleSelectionChange"
+            :default-sort="{prop: 'Name', order: 'ascending'}">
+          <el-table-column type="selection"></el-table-column>
+          <el-table-column
             min-width="80px"
             prop="Name"
             :label="$t('name')"
             sortable
             :sort-orders="['ascending', 'descending']"
-        >
-          <template slot-scope="scope">
-            <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
-            <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column
+          >
+            <template slot-scope="scope">
+              <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
+              <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="Size"
             width="100px"
             :label="$t('size')"
             sortable
             :sort-orders="['ascending', 'descending']"
-        >
-        </el-table-column>
-        <el-table-column
+          >
+          </el-table-column>
+          <el-table-column
             prop="Mode"
             width="100px"
             :label="$t('mode')"
-        >
-        </el-table-column>
-        <el-table-column
+          >
+          </el-table-column>
+          <el-table-column
             prop="ModTime"
             :label="$t('mod_time')"
             sortable
             :sort-orders="['ascending', 'descending']"
-        >
-        </el-table-column>
-        <el-table-column
+          >
+          </el-table-column>
+          <el-table-column
             prop="Download"
             :label="$t('operate')" align="center"
-        >
-          <template slot-scope="scope">
-            <el-dropdown v-if="scope.row.IsDir" type="success" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
-              <div class="avatar-wrapper">
-                <el-button type="success" round class="el-icon-upload" size="medium">
-                  {{ $t('upload') }}
-                  <i class="el-icon-caret-bottom" />
-                </el-button>
-              </div>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>
-                  <span class="fake-file-btn">
-                    {{ $t('upload_file') }}
-                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" multiple="true">
-                  </span>
-                </el-dropdown-item>
-                <el-dropdown-item divided>
-                  <span class="fake-file-btn">
-                    {{ $t('upload_dir') }}
-                    <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" webkitdirectory mozdirectory accept="*/*">
-                  </span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-            <span>
-              &nbsp;&nbsp;
-            </span>
-            <el-dropdown type="primary" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
-              <div class="avatar-wrapper">
-                <el-button type="primary" round class="el-icon-download" size="medium">
-                  {{ $t('download') }}
-                  <i class="el-icon-caret-bottom" />
-                </el-button>
-              </div>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>
-                  <span style="display:block;" @click="download(scope.row.Path, 'tar')">TAR{{ $t('download') }}</span>
-                </el-dropdown-item>
-                <el-dropdown-item divided>
-                  <span style="display:block;" @click="download(scope.row.Path, 'zip')">ZIP{{ $t('download') }}</span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-table-footer store>
-      </el-table-footer>
+          >
+            <template slot-scope="scope">
+              <el-dropdown v-if="scope.row.IsDir" type="success" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
+                <div class="avatar-wrapper">
+                  <el-button style="width: 90px; height: 30px; margin-top: 4px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">
+                    {{ $t('upload') }}
+                    <i class="el-icon-caret-bottom" />
+                  </el-button>
+                </div>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item>
+                    <span class="fake-file-btn">
+                      {{ $t('upload_file') }}
+                      <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" multiple="true">
+                    </span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided>
+                    <span class="fake-file-btn">
+                      {{ $t('upload_dir') }}
+                      <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event, scope.row.Path)" name="files" webkitdirectory mozdirectory accept="*/*">
+                    </span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+              <span>
+                &nbsp;&nbsp;
+              </span>
+              <el-dropdown type="primary" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
+                <div class="avatar-wrapper">
+                  <el-button style="width: 90px; height: 30px; margin-top: 4px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="primary" round class="el-icon-download" size="medium">
+                    {{ $t('download') }}
+                    <i class="el-icon-caret-bottom" />
+                  </el-button>
+                </div>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item>
+                    <span style="display:block;" @click="download(scope.row.Path, 'tar')">TAR{{ $t('download') }}</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item divided>
+                    <span style="display:block;" @click="download(scope.row.Path, 'zip')">ZIP{{ $t('download') }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-table-footer store>
+        </el-table-footer>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -368,12 +372,10 @@ export default {
           for(const key in data){
             this.namespaces.push(data[key].metadata.name)
           }
-          console.log(this.namespaces)
         }
       })
     },
     selectedNamespace(options) {
-      console.log(options);
       GetDeployment({namespace: options}).then(res => {
         if (res) {
           const deployments=[]
@@ -385,15 +387,12 @@ export default {
             deployments.push(_d)
           }
           this.deployments = deployments
-          console.log(this.deployments)
         }
       })
     },
     selecteddeployment(options) {
-      console.log(options);
     },
     getStatus() {
-      console.log(this.deployment[0], this.namespace);
       let deployment = this.deployment
       if (this.deployment[0] === "all") {
         deployment = []
@@ -403,7 +402,6 @@ export default {
       }
       GetStatus({namespace: this.namespace, deployment:deployment}).then(res => {
         if (res) {
-          console.log(res)
           this.tableData = []
           for (const i in res) {
             const pod_name =res[i].pod_name;
@@ -441,13 +439,11 @@ export default {
     },
     openTerminal(options, shell) {
       this.dialogTerminalVisible = true
-      console.log(options, this.namespace, shell)
       this.wsUrl = "ws://"+window.location.host+"/api/k8s/terminal?namespace="+this.namespace+"&pods="+options.Pods+"&container="+options.Container+"&shell="+shell;
     },
 
     openFileBrowser(options, path) {
       this.dialogFileBrowserVisible = true
-      console.log(options, path)
       if (path === undefined) {
         path = "/"
       }
@@ -463,7 +459,6 @@ export default {
         let _pa = ""
         this.headerPaths = []
         _p.forEach((item,index) => {
-          console.log(index, item)
           if (index === 0) {
             _pa = "/"
             item = "/"
@@ -481,7 +476,6 @@ export default {
           }
         })
       }
-      console.log(this.headerPaths)
       this.path = path
       this.fileBrowserData = []
       FileBrowser({
@@ -490,13 +484,11 @@ export default {
         container: this.container,
         path: path,
       }).then(res => {
-        console.log(res)
         this.fileBrowserData = []
         if (res !== undefined) {
           this.fileBrowserData = res
         }
       }, err => {
-        console.log(err)
         alert(err.info.message)
       })
     },
@@ -540,7 +532,6 @@ export default {
       paths.forEach(item => {
         path += "&dest_path="+item
       })
-      console.log(path)
       const url = "/api/k8s/download?namespace="+this.namespace+"&pod_name="+this.pods+"&container_name="+this.container+"&dest_path="+path+"&style="+style;
       const xhr = new XMLHttpRequest();
       xhr.open('GET', url, true);        // 也可以使用POST方式，根据接口
@@ -612,12 +603,13 @@ export default {
       }
       this.$emit('pclose', false)// 子组件对openStatus修改后向父组件发送事件通知
     },
-    doOpen() {
-    },
     doOpened() {
       Terminal.applyAddon(fit)
       Terminal.applyAddon(webLinks)
       Terminal.applyAddon(search)
+      // this.rows = parseInt(document.body.clientHeight / 16 - 5)
+      // this.cols = parseInt(document.body.clientWidth / 14)
+      // console.log(this.rows, this.cols)
       this.term = new Terminal({
         rendererType: 'canvas', // 渲染类型
         rows: this.rows,
@@ -647,12 +639,11 @@ export default {
       this.term.fit() // first resizing
       this.ws = new WebSocket(this.wsUrl)
       this.ws.onerror = () => {
-        this.$message.error('ws has no token, please login first')
-        this.$router.push({ name: 'login' })
+        this.$message.error(this.$t('web_socker_connection_failed'))
       }
       this.ws.onclose = () => {
         this.term.setOption('cursorBlink', false)
-        this.$message('console.web_socket_disconnect')
+        this.$message(this.$t('web_socket_disconnect'))
       }
       bindTerminal(this.term, this.ws, true, -1)
       bindTerminalResize(this.term, this.ws)

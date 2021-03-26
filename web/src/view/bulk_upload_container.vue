@@ -11,11 +11,11 @@
         ></el-option>
       </el-select>
       &nbsp;&nbsp;
-      <el-select :placeholder="$t('please_select_pod')" v-model="pod" @change="selectedPod">
+      <el-select :placeholder="$t('please_select_pod')" v-model="pod" filterable @change="selectedPod">
         <el-option v-for="item in pods" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>
       &nbsp;&nbsp;
-      <el-select :placeholder="$t('please_select_container')" multiple v-model="container">
+      <el-select :placeholder="$t('please_select_container')" multiple filterable v-model="container">
         <el-option :label="$t('check_all')" value="all"></el-option>
         <el-option v-for="item in containers" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>

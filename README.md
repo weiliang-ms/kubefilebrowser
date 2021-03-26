@@ -45,6 +45,9 @@ kubernetes container file browser
 ## file_browser
 ![kubefilebrowser](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/file_browser.jpg)
 
+## terminal
+![terminal](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/terminal.jpg)
+
 ## Swagger
 
 ![kubefilebrowser swagger image](https://raw.githubusercontent.com/xmapst/kubefilebrowser/main/swagger.jpg)
