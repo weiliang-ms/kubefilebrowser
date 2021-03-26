@@ -24,22 +24,13 @@
             action=""
             multiple
             :file-list="fileList"
+            :show-file-list="false"
             :on-change="fileChange"
             :on-remove="fileRemove"
             :auto-upload="false"
             style="display: inline-block">
           <el-button type="primary" plain><i class="el-icon-upload el-icon--right"></i>{{$t('select_file')}}</el-button>
         </el-upload>
-        <!--        <el-upload-->
-        <!--            action=""-->
-        <!--            webkitdirector-->
-        <!--            :file-list="fileList"-->
-        <!--            :on-change="fileChange"-->
-        <!--            :on-remove="fileRemove"-->
-        <!--            :auto-upload="false"-->
-        <!--            style="display: inline-block">-->
-        <!--          <el-button type="primary" plain><i class="el-icon-upload el-icon&#45;&#45;right"></i>{{$t('select_dir')}}</el-button>-->
-        <!--        </el-upload>-->
         <el-button style="margin-left: 10px;vertical-align: top;" type="success" plain @click="submitUpload">{{$t('upload_all')}}</el-button>
       </div>
     </el-card>
@@ -139,6 +130,6 @@ export default {
       else if(index!==-1 && oldIndex!==-1 && val.length>1)
         this.pod.splice(val.indexOf('all'),1)
     }
-  },
+  }
 }
 </script>

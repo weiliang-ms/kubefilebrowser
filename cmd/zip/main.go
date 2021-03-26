@@ -74,7 +74,8 @@ func makeZip(inFilePath string, zw *zip.Writer) {
 			var dat *os.File
 			var fw io.Writer
 			var err error
-			if strings.Replace(inFilePath, "/", "", -1) == file.Name() {
+			_p := strings.Split(inFilePath, "/")
+			if _p[len(_p)-1] == file.Name() {
 				dat, err = os.Open(inFilePath)
 			} else {
 				dat, err = os.Open(inFilePath + "/" + file.Name())
@@ -84,7 +85,7 @@ func makeZip(inFilePath string, zw *zip.Writer) {
 				continue
 			}
 			// Add some files to the archive.
-			if strings.Replace(inFilePath, "/", "", -1) == file.Name() {
+			if _p[len(_p)-1] == file.Name() {
 				fw, err = zw.Create(strings.Replace(inFilePath, "/", "", 1))
 			} else {
 				fw, err = zw.Create(strings.Replace(inFilePath, "/", "", 1) + "/" + file.Name())
