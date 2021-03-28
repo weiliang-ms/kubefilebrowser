@@ -2,53 +2,73 @@
   <div>
     <el-card shadow="never">
       <div>
-      <el-select v-model="namespace" @click.native="getNamespace" @change="selectedNamespace" filterable :placeholder="$t('please_select_namespace')">
-        <el-option
-            v-for="item in namespaces"
-            :label="item"
-            :value="item"
-            :key="item"
-        ></el-option>
-      </el-select>
-      &nbsp;&nbsp;
-      <el-select :placeholder="$t('please_select_pod')" v-model="pod" filterable @change="selectedPod">
+        <el-select style="width: 100%" v-model="namespace" @click.native="getNamespace" @change="selectedNamespace" filterable :placeholder="$t('please_select_namespace')">
+          <el-option
+              v-for="item in namespaces"
+              :label="item"
+              :value="item"
+              :key="item"
+          ></el-option>
+        </el-select>
+      </div>
+      <div>
+      <el-select style="width: 100%" :placeholder="$t('please_select_pod')" v-model="pod" filterable @change="selectedPod">
         <el-option v-for="item in pods" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>
-      &nbsp;&nbsp;
-      <el-select :placeholder="$t('please_select_container')" multiple filterable v-model="container">
+      </div>
+      <div>
+      <el-select style="width: 100%" :placeholder="$t('please_select_container')" multiple filterable v-model="container">
         <el-option :label="$t('check_all')" value="all"></el-option>
         <el-option v-for="item in containers" :label="item.label" :value="item.value" :key="item.value"></el-option>
       </el-select>
-      &nbsp;&nbsp;
-      <el-input v-model="destPath" style="width: 193px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
       </div>
-      &nbsp;&nbsp;
       <div>
-        <el-upload
-            action=""
-            multiple
-            :file-list="fileList"
-            :on-change="fileChange"
-            :on-remove="fileRemove"
-            :auto-upload="false"
-            style="display: inline-block">
-          <el-button type="primary" plain><i class="el-icon-upload el-icon--right"></i>{{$t('select_file')}}</el-button>
-        </el-upload>
-<!--        <el-upload-->
-<!--            action=""-->
-<!--            webkitdirector-->
-<!--            :file-list="fileList"-->
-<!--            :on-change="fileChange"-->
-<!--            :on-remove="fileRemove"-->
-<!--            :auto-upload="false"-->
-<!--            style="display: inline-block">-->
-<!--          <el-button type="primary" plain><i class="el-icon-upload el-icon&#45;&#45;right"></i>{{$t('select_dir')}}</el-button>-->
-<!--        </el-upload>-->
-        <el-button style="margin-left: 10px;vertical-align: top;" type="success" plain @click="submitUpload">{{$t('upload_all')}}</el-button>
+      <el-input style="width: 100%" v-model="destPath" style="width: 193px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
+      </div>
+      <div>
+        <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
+          <div class="avatar-wrapper">
+            <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">
+              {{ $t('upload') }}
+              <i class="el-icon-caret-bottom" />
+            </el-button>
+          </div>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item>
+                <span class="fake-file-btn">
+                  {{ $t('upload_file') }}
+                  <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event)" name="files" multiple="true">
+                </span>
+            </el-dropdown-item>
+            <el-dropdown-item divided>
+                <span class="fake-file-btn">
+                  {{ $t('upload_dir') }}
+                  <input type="file" style="display:block;" v-on:change="uploadFileOrDir($event)" name="files" webkitdirectory mozdirectory accept="*/*">
+                </span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </div>
     </el-card>
   </div>
 </template>
+
+<style>
+.fake-file-btn {
+}
+.fake-file-btn:active {
+  box-shadow: 0 1px 5px 1px rgba(0, 255, 255, 0.3) inset;
+}
+.fake-file-btn input[type=file] {
+  position: absolute;
+  font-size: 100px;
+  right: 0;
+  top: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  cursor: pointer
+}
+</style>
 
 <script>
 import { GetNamespace } from '../api/namespaces'
@@ -104,6 +124,8 @@ export default {
       })
     },
     selectedPod() {
+      this.container = []
+      this.containers = []
       GetPods({namespace: this.namespace, pod: this.pod}).then(res => {
         if (res) {
           console.log(res)
@@ -120,39 +142,35 @@ export default {
         }
       })
     },
-    fileChange(file, fileList) {
-      this.fileList = fileList
-    },
-    fileRemove(file, fileList) {
-      this.fileList = fileList
-    },
-    submitUpload(){
-      console.log("this.fileList", this.fileList)
-      let formData = new FormData
-      this.fileList.forEach(file => {
-        formData.append("files", file.raw)
-      })
-      var container = this.container[0]
-      if (this.container[0] === "all") {
-        container = []
-        for (const key in this.containers) {
-          container.push(this.containers[key].value)
-        }
+    uploadFileOrDir(e) {
+      const files = e.target.files;
+      if (files.length === 0 ) {
+        e.target.value = ""
+        return
+      }
+      let container = this.container
+      if (container[0] === "all") {
+        container = this.containers
+      }
+      const formData = new FormData();
+      //追加文件数据
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
       }
       FileOrDirUpload(formData, {
         namespace:this.namespace,
         pod_name:this.pod,
         container_name:container,
-        dest_path:this.destPath
-      },{"Content-Type":"multipart/form-data"}).then(res => {
+        dest_path:this.destPath},{"Content-Type":"multipart/form-data"}).then((res) => {
         if (res.failure !== undefined) {
           alert(res.failure)
         }else {
           alert(res.success)
         }
-      }, (err) =>{
+      }, (err) => {
         alert(err.info.message)
       })
+      e.target.value = ""
     },
   },
   watch:{

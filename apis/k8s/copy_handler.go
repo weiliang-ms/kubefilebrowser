@@ -26,7 +26,7 @@ import (
 
 type MultiCopyQuery struct {
 	Namespace string `json:"namespace" form:"namespace" binding:"required"`
-	PodName   string `json:"pod_name" form:"pod_name" binding:"required"`
+	PodName   []string `json:"pod_name" form:"pod_name" binding:"required"`
 	DestPath  string `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
@@ -43,7 +43,7 @@ type MultiCopyQuery struct {
 // @Router /api/k8s/multi_upload [post]
 func MultiCopy2Container(c *gin.Context) {
 	render := apis.Gin{C: c}
-	var query CopyQuery
+	var query MultiCopyQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_PARAM, err)
@@ -57,8 +57,7 @@ func MultiCopy2Container(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	podNameSlice := strings.Split(query.PodName, ",")
-	for _, podName := range podNameSlice {
+	for _, podName := range query.PodName {
 		// check pod
 		pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), podName, metaV1.GetOptions{})
@@ -162,7 +161,7 @@ func MultiCopy2Container(c *gin.Context) {
 		}
 	}()
 
-	for _, podName := range podNameSlice {
+	for _, podName := range query.PodName {
 		var containerSlice []string
 		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), podName, metaV1.GetOptions{})
@@ -224,7 +223,7 @@ func MultiCopy2Container(c *gin.Context) {
 type CopyQuery struct {
 	Namespace     string `json:"namespace" form:"namespace" binding:"required"`
 	PodName       string `json:"pod_name" form:"pod_name" binding:"required"`
-	ContainerName string `json:"container_name" form:"container_name"`
+	ContainerName []string `json:"container_name" form:"container_name"`
 	DestPath      string `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
@@ -350,7 +349,7 @@ func Copy2Container(c *gin.Context) {
 
 	var containerSlice []string
 	if len(query.ContainerName) != 0 {
-		containerSlice = strings.Split(query.ContainerName, ",")
+		containerSlice = query.ContainerName
 	} else {
 		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), query.PodName, metaV1.GetOptions{})
