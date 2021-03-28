@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 export PATH=$PATH:$GOPATH/bin
 #go get -u github.com/swaggo/swag/cmd/swag
-swag init -g cmd/server/main.go
+swag init
 # shellcheck disable=SC2181
 if [ "$?" != "0" ]; then
   echo "!!!!!!Swagger documentation generate error, please check the source code!!!!!!"
@@ -13,7 +13,7 @@ cd web && yarn run build && cd ../
 
 # build server
 name="kubefilebrowser"
-version="v1.3-beta"
+version="v1.3"
 osList="linux windows darwin"
 # shellcheck disable=SC2181
 for i in $osList; do
@@ -43,7 +43,3 @@ for i in $osList; do
     exit 1
   fi
 done
-
-# shellcheck disable=SC2154
-# shellcheck disable=SC2027
-tar zcf $name"_"$version".tar.gz" static $name"_linux-"$version $name"_windows-"$version".exe" $name"_darwin-"$version
