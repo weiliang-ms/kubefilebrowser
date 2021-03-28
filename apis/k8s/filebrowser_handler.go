@@ -69,18 +69,6 @@ func FileBrowser(c *gin.Context) {
 			break
 		}
 	}
-	if isUnix {
-		_, err = query.exec([]string{"sh"})
-	} else {
-		_, err = query.exec([]string{"cmd"})
-	}
-	if err != nil {
-		logs.ErrorWithFields(err, logs.Fields{
-			"annotation": "test container terminal shell",
-		})
-		render.SetError(utils.CODE_ERR_APP, err)
-		return
-	}
 
 	lsPath := "/ls_linux_amd64"
 	command := []string{"/ls", query.Path}
@@ -92,6 +80,18 @@ func FileBrowser(c *gin.Context) {
 		logs.Error(err)
 		if strings.Contains(err.Error(), "ls") ||
 			err.Error() == "command terminated with exit code 126" {
+			if isUnix {
+				_, err = query.exec([]string{"sh"})
+			} else {
+				_, err = query.exec([]string{"cmd"})
+			}
+			if err != nil {
+				logs.ErrorWithFields(err, logs.Fields{
+					"annotation": "test container terminal shell",
+				})
+				render.SetError(utils.CODE_ERR_APP, err)
+				return
+			}
 			err = query.copyLsTar(lsPath)
 			if err != nil {
 				logs.Error(err)

@@ -1,6 +1,7 @@
 package routers
 
 import (
+	_ "embed"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,6 @@ import (
 	"kubefilebrowser/utils"
 	"kubefilebrowser/utils/denyip"
 	"kubefilebrowser/utils/logs"
-	"net/http"
 )
 
 var (
@@ -38,12 +38,12 @@ func Router() *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// 静态资源
-	router.StaticFile("/", "static/index.html")
-	router.Static("/static", "static")
-	router.LoadHTMLFiles("static/index.html")
-	router.NoRoute(func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
-	})
+	//router.StaticFile("/", "static/index.html")
+	//router.Static("/static", "static")
+	//router.LoadHTMLFiles("static/index.html")
+	//router.NoRoute(func(c *gin.Context) {
+	//	c.HTML(http.StatusOK, "index.html", nil)
+	//})
 
 	apiGroup := router.Group("/api", handlersMiddleware())
 	{

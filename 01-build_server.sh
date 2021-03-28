@@ -22,7 +22,7 @@ for i in $osList; do
   if [ "$i" == "windows" ];then
     BinaryName=${BinaryName}.exe
   fi
-  CGO_ENABLED=0 GOOS=$i GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o "$BinaryName" cmd/server/main.go
+  CGO_ENABLED=0 GOOS=$i GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o "$BinaryName"
   # shellcheck disable=SC2181
   if [ "$?" != "0" ]; then
     echo "!!!!!!Server compilation error, please check the source code!!!!!!"

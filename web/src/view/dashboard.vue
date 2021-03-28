@@ -443,7 +443,6 @@ export default {
     },
 
     openFileBrowser(options, path) {
-      this.dialogFileBrowserVisible = true
       if (path === undefined) {
         path = "/"
       }
@@ -484,6 +483,7 @@ export default {
         container: this.container,
         path: path,
       }).then(res => {
+        this.dialogFileBrowserVisible = true
         this.fileBrowserData = []
         if (res !== undefined) {
           this.fileBrowserData = res
