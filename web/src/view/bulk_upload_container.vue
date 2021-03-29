@@ -23,7 +23,7 @@
       </el-select>
       </div>
       <div>
-      <el-input style="width: 100%" v-model="destPath" style="width: 193px;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
+      <el-input v-model="destPath" style="width: 100%;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
       </div>
       <div>
         <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">

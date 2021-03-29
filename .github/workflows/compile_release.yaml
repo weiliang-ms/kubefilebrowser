@@ -57,34 +57,28 @@ jobs:
         if: steps.build_front-end.outputs.status == 'success' && !cancelled()
         run: |
           cd ${{ env.FIRMWARE }}
-          export PATH=$GOPATH/bin:$PATH
-          swag init -g cmd/server/main.go
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/linux/amd64/kubefilebrowser cmd/server/main.go
-          upx --lzma release/linux/amd64/kubefilebrowser
-          cp -r static release/linux/amd64/
-
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/windows/amd64/kubefilebrowser.exe cmd/server/main.go
-          upx --lzma release/windows/amd64/kubefilebrowser.exe
-          cp -r static release/windows/amd64/
-
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o release/darwin/amd64/kubefilebrowser cmd/server/main.go
-          upx --lzma release/darwin/amd64/kubefilebrowser
-          cp -r static release/darwin/amd64/
-
-          echo "::set-output name=status::success"
-      - name: Packed binary
-        id: packed_binary
-        if: steps.build_back-end.outputs.status == 'success' && !cancelled()
-        run: |
           mkdir -p publish
-          tar -zcf publish/kubefilebrowser_windows_amd64.tar.gz -C release/windows/amd64
-          tar -zcf publish/kubefilebrowser_linux_amd64.tar.gz -C release/linux/amd64
-          tar -zcf publish/kubefilebrowser_darwin_amd64.tar.gz -C release/darwin/amd64
-          shasum publish/*.tar.gz > publish/kubefilebrowser-${{ env.RELEASE_VERSION }}-checksums.txt
+          export PATH=$GOPATH/bin:$PATH
+          # swagger doc
+          swag init
+
+          # build linux amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o publish/kubefilebrowser_linux_amd64
+          upx --lzma publish/kubefilebrowser_linux_amd64
+
+          # build windows amd64
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o publish/kubefilebrowser_windows_amd64.exe
+          upx --lzma publish/kubefilebrowser_windows_amd64.exe
+
+          # build darwin amd64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o publish/kubefilebrowser_darwin_amd64
+          upx --lzma publish/kubefilebrowser_darwin_amd64
+
+          shasum publish/* > publish/kubefilebrowser-${{ env.RELEASE_VERSION }}-checksums.txt
           echo "::set-output name=status::success"
       - name: Push release
         uses: svenstaro/upload-release-action@v1-release
-        if: steps.packed_binary.outputs.status == 'success' && !cancelled()
+        if: steps.build_back-end.outputs.status == 'success' && !cancelled()
         with:
           repo_token: ${{ secrets.REPO_TOKEN }}
           file: ${{ env.FIRMWARE }}/publish/*
