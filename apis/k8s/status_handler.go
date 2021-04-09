@@ -18,10 +18,10 @@ import (
 )
 
 type StatusQuery struct {
-	Namespace     string `json:"namespace" form:"namespace" binding:"required"`
+	Namespace     string   `json:"namespace" form:"namespace" binding:"required"`
 	Deployment    []string `json:"deployment" form:"deployment" `
-	FieldSelector string `json:"field_selector" form:"field_selector"`
-	LabelSelector string `json:"label_selector" form:"label_selector"`
+	FieldSelector string   `json:"field_selector" form:"field_selector"`
+	LabelSelector string   `json:"label_selector" form:"label_selector"`
 }
 
 type ResPods struct {
@@ -69,19 +69,26 @@ func PodStatus(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-
+	var mu = sync.Mutex{}
+	var wg sync.WaitGroup
 	var deployments []appsV1.Deployment
 	_d, ok := c.GetQuery("deployment")
 	if ok && _d != "" {
 		for _, d := range query.Deployment {
-			deployment, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
-				Get(context.TODO(), d, metaV1.GetOptions{})
-			if err != nil {
-				logs.Error(err)
-				continue
-			}
-			deployments = append(deployments, *deployment)
+			wg.Add(1)
+			go func(wg *sync.WaitGroup, name string) {
+				defer wg.Done()
+				deployment, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
+					Get(context.TODO(), name, metaV1.GetOptions{})
+				if err != nil {
+					logs.Error(err)
+				}
+				mu.Lock()
+				deployments = append(deployments, *deployment)
+				mu.Unlock()
+			}(&wg, d)
 		}
+		wg.Wait()
 	} else {
 		deploymentList, err := configs.RestClient.AppsV1().Deployments(query.Namespace).
 			List(context.TODO(), metaV1.ListOptions{
@@ -98,7 +105,6 @@ func PodStatus(c *gin.Context) {
 		}
 	}
 	var podList []coreV1.Pod
-	var wg sync.WaitGroup
 	for _, d := range deployments {
 		wg.Add(1)
 		deployment := d
@@ -117,7 +123,9 @@ func PodStatus(c *gin.Context) {
 				logs.Error(err)
 				return
 			}
+			mu.Lock()
 			podList = append(podList, pods.Items...)
+			mu.Unlock()
 		}(&wg, &deployment)
 	}
 	wg.Wait()
@@ -210,11 +218,13 @@ func PodStatus(c *gin.Context) {
 					container = append(container, _container)
 				}
 			}
+			mu.Lock()
 			resPods = append(resPods, ResPods{
 				PodName: pod.Name,
 				//InitContainers: initContainers,
 				Containers: container,
 			})
+			mu.Unlock()
 		}(&wg, &pod)
 	}
 	wg.Wait()

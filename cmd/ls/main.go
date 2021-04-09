@@ -45,13 +45,23 @@ func main() {
 		if inSlice(p, denyFileOrList) {
 			continue
 		}
+		isDir := d.IsDir()
+		size := d.Size()
+		// check link is file or dir
+		if d.Mode()&os.ModeSymlink != 0 {
+			s, err := os.Stat(p)
+			if err == nil {
+				isDir = s.IsDir()
+				size = s.Size()
+			}
+		}
 		f := File{
 			Name:    d.Name(),
 			Path:    p,
-			Size:    d.Size(),
+			Size:    size,
 			Mode:    d.Mode().String(),
 			ModTime: d.ModTime(),
-			IsDir:   d.IsDir(),
+			IsDir:   isDir,
 			Sys:     d.Sys(),
 		}
 		files = append(files, f)

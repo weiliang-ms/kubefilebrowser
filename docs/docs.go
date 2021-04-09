@@ -781,7 +781,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
@@ -799,7 +803,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
@@ -817,7 +825,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "pod_name",
                         "in": "query",
                         "required": true
@@ -1275,7 +1287,11 @@ var doc = `{
                 "summary": "Copy2Container",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -1298,7 +1314,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -1321,7 +1341,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "container_name",
                         "in": "query"
                     },
@@ -1344,7 +1368,11 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
                         "name": "container_name",
                         "in": "query"
                     },

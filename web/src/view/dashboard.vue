@@ -408,7 +408,7 @@ export default {
             const cData = res[i].containers;
             for (const j in cData) {
               let tr = {
-                Pods:"",
+                Pods:pod_name,
                 Container:cData[j].name,
                 Image:cData[j].image,
                 Tag:cData[j].version,
@@ -417,19 +417,6 @@ export default {
                 CPU:cData[j].cpu,
                 RAM:cData[j].ram,
                 OS: cData[j].os,
-              }
-              if (j === "0") {
-                tr = {
-                  Pods:pod_name,
-                  Container:cData[j].name,
-                  Image:cData[j].image,
-                  Tag:cData[j].version,
-                  ImagePullSecrets:cData[j].image_pull_policy,
-                  State:cData[j].state,
-                  CPU:cData[j].cpu,
-                  RAM:cData[j].ram,
-                  OS: cData[j].os,
-                }
               }
               this.tableData.push(tr)
             }
