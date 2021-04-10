@@ -111,7 +111,11 @@
           </span>
         </el-table-header>
         <el-table
+            id="tableData"
             class="app-table"
+            height="100%"
+            border
+            style="width: 100%"
             size="100%"
             :cell-style="{padding:'6px 0'}"
             :data="fileBrowserData"
@@ -356,8 +360,6 @@ export default {
       ws: null,
       term: null,
       thisV: this.visible,
-      rows: 35,
-      cols: 100
     }
   },
   methods: {
@@ -428,7 +430,6 @@ export default {
       this.dialogTerminalVisible = true
       this.wsUrl = "ws://"+window.location.host+"/api/k8s/terminal?namespace="+this.namespace+"&pods="+options.Pods+"&container="+options.Container+"&shell="+shell;
     },
-
     openFileBrowser(options, path) {
       if (path === undefined) {
         path = "/"
@@ -572,7 +573,13 @@ export default {
 
     onWindowResize() {
       // console.log("resize")
-      this.term.fit() // it will make terminal resized.
+      // this.term.fit() // it will make terminal resized.
+      // this.term.scrollToBottom();
+      let height = document.body.clientHeight;
+      let rows = height/23;
+      this.term.fit();
+      this.term.resize(this.term.cols,parseInt(rows))//终端窗口重新设置大小 并触发term.on("resize"
+      this.term.scrollToBottom();
     },
     doLink(ev, url) {
       if (ev.type === 'click') {
@@ -594,15 +601,12 @@ export default {
       Terminal.applyAddon(fit)
       Terminal.applyAddon(webLinks)
       Terminal.applyAddon(search)
-      // this.rows = parseInt(document.body.clientHeight / 16 - 5)
-      // this.cols = parseInt(document.body.clientWidth / 14)
-      // console.log(this.rows, this.cols)
       this.term = new Terminal({
         rendererType: 'canvas', // 渲染类型
-        rows: this.rows,
-        cols: this.cols,
+        rows: parseInt(document.body.clientHeight/23),
+        cols: parseInt(document.body.clientWidth),
         convertEol: true, // 启用时，光标将设置为下一行的开头
-        scrollback: 10, // 终端中的回滚量
+        // scrollback: 10, // 终端中的回滚量
         disableStdin: false, // 是否应禁用输入
         fontSize: 18,
         cursorBlink: true, // 光标闪烁

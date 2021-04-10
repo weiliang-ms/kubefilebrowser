@@ -18,8 +18,5 @@ kubefilebrowser_*
 kubefilebrowser
 .idea
 .vscode
-tmp
-ls.exe
-
 utils/ls_binary/*
 utils/zip_binary/*
