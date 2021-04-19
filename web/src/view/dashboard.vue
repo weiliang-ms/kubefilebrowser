@@ -1,44 +1,50 @@
 <template>
   <div>
     <el-card shadow="never">
-        <el-select v-model="namespace" @click.native="getNamespace" @change="selectedNamespace" filterable :placeholder="$t('please_select_namespace')">
+      <div>
+        <el-select v-model="namespace" @click.native="getNamespace" @change="selectedNamespace" style="width: 100%" filterable :placeholder="$t('please_select_namespace')">
           <el-option
-              v-for="item in namespaces"
-              :label="item"
-              :value="item"
-              :key="item"
+            v-for="item in namespaces"
+            :label="item"
+            :value="item"
+            :key="item"
           ></el-option>
         </el-select>
-        &nbsp;&nbsp;
-        <el-select :placeholder="$t('please_select_deployment')" filterable multiple v-model="deployment" @change="selecteddeployment">
+      </div>
+      <div style="margin-top: 15px">
+        <el-select :placeholder="$t('please_select_deployment')" style="width: 100%" filterable multiple v-model="deployment" @change="selecteddeployment">
           <el-option :label="$t('check_all')" value="all"></el-option>
           <el-option v-for="item in deployments" :label="item.label" :value="item.value" :key="item.value"></el-option>
         </el-select>
-        &nbsp;&nbsp;
-        <el-button @click.native="getStatus">{{ $t('enter') }}</el-button>
-        <br>
+      </div>
+      <div style="margin-top: 15px">
+        <el-button @click.native="getStatus" style="float: right;">{{ $t('enter') }}</el-button>
+      </div>
+      <div style="margin-top: 15px">
         <el-table
-                class="app-table"
-                size="medium"
-                :data="tableData">
-            <el-table-column prop="Pods" :label="$t('name')"></el-table-column>
-            <el-table-column prop="Container" :label="$t('container')"></el-table-column>
-            <el-table-column prop="Image" :label="$t('image')"></el-table-column>
-            <el-table-column prop="Tag" :label="$t('tag')"></el-table-column>
-            <el-table-column prop="ImagePullSecrets" :label="$t('image_pull_secrets')"></el-table-column>
-            <el-table-column prop="State" :label="$t('state')"></el-table-column>
-            <el-table-column prop="CPU" :label="$t('cpu')"></el-table-column>
-            <el-table-column prop="RAM" :label="$t('ram')"></el-table-column>
-            <el-table-column prop="OS" :label="$t('os')"></el-table-column>
-            <el-table-column prop="Operate" :label="$t('operate')" width="160" align="center">
-              <template slot-scope="scope">
-                <el-button class="el-icon-s-fold" v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
-                <el-button class="el-icon-s-fold" v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
-                <span></span>
-                <el-button class="el-icon-files" @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
-              </template>
+            style="margin-top: 15px"
+            class="app-table"
+            size="medium"
+            :data="tableData">
+          <el-table-column prop="Pods" :label="$t('name')"></el-table-column>
+          <el-table-column prop="Container" :label="$t('container')"></el-table-column>
+          <el-table-column prop="Image" :label="$t('image')"></el-table-column>
+          <el-table-column prop="Tag" :label="$t('tag')"></el-table-column>
+          <el-table-column prop="ImagePullSecrets" :label="$t('image_pull_secrets')"></el-table-column>
+          <el-table-column prop="State" :label="$t('state')"></el-table-column>
+          <el-table-column prop="CPU" :label="$t('cpu')"></el-table-column>
+          <el-table-column prop="RAM" :label="$t('ram')"></el-table-column>
+          <el-table-column prop="OS" :label="$t('os')"></el-table-column>
+          <el-table-column prop="Operate" :label="$t('operate')" width="160" align="center">
+            <template slot-scope="scope">
+              <el-button class="el-icon-s-fold" v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
+              <el-button class="el-icon-s-fold" v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
+              <span></span>
+              <el-button class="el-icon-files" @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
+            </template>
           </el-table-column>
         </el-table>
+      </div>
     </el-card>
     <el-dialog
         :visible.sync="dialogTerminalVisible"
@@ -113,7 +119,6 @@
         <el-table
             id="tableData"
             class="app-table"
-            height="100%"
             border
             style="width: 100%"
             size="100%"

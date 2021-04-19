@@ -15,7 +15,7 @@ if (global.navigator.language) {
     localeLang = global.navigator.language
     localeLang = localeLang.toLowerCase()
 }
-if (localeLang.indexOf('en') != 0) {
+if (localeLang.indexOf('en') !== 0) {
     localeLang = 'zh-cn'
 }
 

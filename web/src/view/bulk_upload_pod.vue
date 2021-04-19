@@ -11,16 +11,16 @@
           ></el-option>
         </el-select>
       </div>
-      <div>
+      <div style="margin-top: 15px">
         <el-select style="width: 100%" :placeholder="$t('please_select_pod')" filterable multiple v-model="pod">
           <el-option :label="$t('check_all')" value="all"></el-option>
           <el-option v-for="item in pods" :label="item.label" :value="item.value" :key="item.value"></el-option>
         </el-select>
       </div>
-      <div>
+      <div style="margin-top: 15px">
         <el-input v-model="destPath" style="width: 100%;height: 40px" autocomplete="off" :placeholder="$t('please_input_dest_path')"></el-input>
       </div>
-      <div>
+      <div style="margin-top: 15px">
         <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
           <div class="avatar-wrapper">
             <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">

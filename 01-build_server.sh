@@ -13,7 +13,7 @@ cd web && yarn run build && cd ../
 sed -i "s/Vue App/KubeFileBrowser/g" static/index.html
 # build server
 name="kubefilebrowser"
-version="v1.5"
+version="v1.6"
 osList="linux windows darwin"
 # shellcheck disable=SC2181
 for i in $osList; do

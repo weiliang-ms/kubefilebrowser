@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -21,7 +22,7 @@ func init() {
 }
 
 func main() {
-	// debug code
+	//debug code
 	//fw, err := os.Create("xxxx.zip")
 	//if err != nil {
 	//	_, _ = fmt.Fprint(os.Stderr, err.Error())
@@ -37,18 +38,18 @@ func main() {
 		}
 	}()
 	var wg sync.WaitGroup
-	for _, src := range paths {
-		if !fileOrPathExist(src) {
-			_, _ = fmt.Fprintf(os.Stdout, "%s does not exist", src)
-			_, _ = fmt.Fprintf(os.Stderr, "%s does not exist", src)
+	for _, p := range paths {
+		if !fileOrPathExist(p) {
+			_, _ = fmt.Fprintf(os.Stdout, "%s does not exist", p)
+			_, _ = fmt.Fprintf(os.Stderr, "%s does not exist", p)
 			continue
 		}
 		wg.Add(1)
-		go func(wg *sync.WaitGroup, src string, zw *zip.Writer) {
+		go func(wg *sync.WaitGroup, s string, z *zip.Writer) {
 			defer wg.Done()
-			makeZip(src, zw)
-
-		}(&wg, src, zw)
+			makeZip(s, z)
+			
+		}(&wg, p, zw)
 	}
 	wg.Wait()
 }
@@ -68,28 +69,24 @@ func makeZip(inFilePath string, zw *zip.Writer) {
 		}
 		files = append(files, file)
 	}
-
+	
 	for _, file := range files {
-		if !file.IsDir() {
-			var dat *os.File
-			var fw io.Writer
-			var err error
-			_p := strings.Split(inFilePath, "/")
-			if _p[len(_p)-1] == file.Name() {
-				dat, err = os.Open(inFilePath)
-			} else {
-				dat, err = os.Open(inFilePath + "/" + file.Name())
+		// 软链接处理
+		isDir := file.IsDir()
+		if file.Mode()&os.ModeSymlink != 0 {
+			_f, err := os.Stat(filepath.Join(inFilePath, file.Name()))
+			if err == nil {
+				isDir = _f.IsDir()
 			}
+		}
+		if !file.IsDir() && !isDir {
+			dat, err := os.Open(inFilePath + "/" + file.Name())
 			if err != nil {
 				_, _ = fmt.Fprint(os.Stderr, err.Error())
 				continue
 			}
 			// Add some files to the archive.
-			if _p[len(_p)-1] == file.Name() {
-				fw, err = zw.Create(strings.Replace(inFilePath, "/", "", 1))
-			} else {
-				fw, err = zw.Create(strings.Replace(inFilePath, "/", "", 1) + "/" + file.Name())
-			}
+			fw, err := zw.Create(strings.Replace(inFilePath, "/", "", 1) + "/" + file.Name())
 			if err != nil {
 				_, _ = fmt.Fprint(os.Stderr, err.Error())
 				continue
@@ -100,7 +97,13 @@ func makeZip(inFilePath string, zw *zip.Writer) {
 			}
 		} else {
 			// Recurse
-			newBase := inFilePath + "/" + file.Name()
+			var newBase string
+			_p := strings.Split(inFilePath, "/")
+			if _p[len(_p)-1] == file.Name() {
+				newBase = inFilePath + "/"
+			} else {
+				newBase = inFilePath + "/" + file.Name()
+			}
 			makeZip(newBase, zw)
 		}
 	}

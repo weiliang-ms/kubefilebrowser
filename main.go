@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -48,7 +49,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
 
 	// Block until we receive our signal.
 	<-c
@@ -66,11 +67,11 @@ func main() {
 	os.Exit(0)
 }
 
-
 //go:embed static/*
 var staticFS embed.FS
 
 const fsBase = "static"
+
 //feMw 使用go.16新的特性embed 到包前端编译后的代码. 替代nginx.   one binary rules them all
 func feMw(urlPrefix string) gin.HandlerFunc {
 	const indexHtml = "index.html"

@@ -107,10 +107,9 @@ func PodStatus(c *gin.Context) {
 	var podList []coreV1.Pod
 	for _, d := range deployments {
 		wg.Add(1)
-		deployment := d
-		go func(wg *sync.WaitGroup, deployment *appsV1.Deployment) {
+		go func(wg *sync.WaitGroup, deployment appsV1.Deployment) {
 			defer wg.Done()
-			rsList, err := deploymentutil.ListReplicaSets(deployment, deploymentutil.RsListFromClient(configs.RestClient.AppsV1()))
+			rsList, err := deploymentutil.ListReplicaSets(&deployment, deploymentutil.RsListFromClient(configs.RestClient.AppsV1()))
 			if err != nil {
 				logs.Error(err)
 				return
@@ -118,7 +117,7 @@ func PodStatus(c *gin.Context) {
 			podListFunc := func(namespace string, options metaV1.ListOptions) (*coreV1.PodList, error) {
 				return configs.RestClient.CoreV1().Pods(namespace).List(context.TODO(), options)
 			}
-			pods, err := deploymentutil.ListPods(deployment, rsList, podListFunc)
+			pods, err := deploymentutil.ListPods(&deployment, rsList, podListFunc)
 			if err != nil {
 				logs.Error(err)
 				return
@@ -126,15 +125,14 @@ func PodStatus(c *gin.Context) {
 			mu.Lock()
 			podList = append(podList, pods.Items...)
 			mu.Unlock()
-		}(&wg, &deployment)
+		}(&wg, d)
 	}
 	wg.Wait()
 
 	var resPods []ResPods
 	for _, p := range podList {
-		pod := p
 		wg.Add(1)
-		go func(wg *sync.WaitGroup, pod *coreV1.Pod) {
+		go func(wg *sync.WaitGroup, pod coreV1.Pod) {
 			defer wg.Done()
 			var isUnix = true
 			for _, value := range pod.Spec.NodeSelector {
@@ -225,7 +223,7 @@ func PodStatus(c *gin.Context) {
 				Containers: container,
 			})
 			mu.Unlock()
-		}(&wg, &pod)
+		}(&wg, p)
 	}
 	wg.Wait()
 	render.SetJson(resPods)

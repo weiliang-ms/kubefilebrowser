@@ -87,11 +87,14 @@ func MultiCopy2Container(c *gin.Context) {
 
 	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var wg sync.WaitGroup
+	var mu = sync.Mutex{}
 	var fErrCh = make(chan error, len(files))
 	var fErr error
 	go func() {
 		for e := range fErrCh {
+			mu.Lock()
 			fErr = multierror.Append(fErr, e)
+			mu.Unlock()
 		}
 	}()
 
@@ -106,13 +109,13 @@ func MultiCopy2Container(c *gin.Context) {
 	}
 	defer os.RemoveAll(_tmpSaveDir)
 
-	for _, file := range files {
+	for _, f := range files {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, fErrCh chan error, file *multipart.FileHeader) {
 			defer wg.Done()
 			// Default save path
 			_tp := _tmpSaveDir
-			uploadFilname := filepath.Base(file.Filename)
+			uploadFileName := filepath.Base(file.Filename)
 			uploadFPath := filepath.Dir(file.Filename)
 			// Process folder upload
 			if uploadFPath != "." {
@@ -123,11 +126,11 @@ func MultiCopy2Container(c *gin.Context) {
 			}
 
 			// save file to local in _tp
-			err = c.SaveUploadedFile(file, filepath.Join(_tp, uploadFilname))
+			err = c.SaveUploadedFile(file, filepath.Join(_tp, uploadFileName))
 			if err != nil {
 				fErrCh <- fmt.Errorf(file.Filename, err.Error())
 			}
-		}(&wg, fErrCh, file)
+		}(&wg, fErrCh, f)
 	}
 	wg.Wait()
 
@@ -152,9 +155,13 @@ func MultiCopy2Container(c *gin.Context) {
 		for {
 			select {
 			case e := <-cErrCh:
+				mu.Lock()
 				cErr = append(cErr, e)
+				mu.Unlock()
 			case copied := <-copiedCh:
+				mu.Lock()
 				res = append(res, copied)
+				mu.Unlock()
 			case <-cStopCh:
 				return
 			}
@@ -174,7 +181,7 @@ func MultiCopy2Container(c *gin.Context) {
 			containerSlice = append(containerSlice, container.Name)
 		}
 
-		for _, container := range containerSlice {
+		for _, c := range containerSlice {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, cErrCh chan error, podName, container string) {
 				defer wg.Done()
@@ -198,7 +205,7 @@ func MultiCopy2Container(c *gin.Context) {
 				}
 				logs.Info(fmt.Sprintf("pod: %s container: %s Copied", podName, container))
 				copiedCh <- fmt.Sprintf("pod: %s container: %s Copied", podName, container)
-			}(&wg, cErrCh, podName, container)
+			}(&wg, cErrCh, podName, c)
 		}
 	}
 	wg.Wait()
@@ -285,12 +292,15 @@ func Copy2Container(c *gin.Context) {
 
 	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	var fErrCh = make(chan error, len(files))
 	defer close(fErrCh)
 	var fErr error
 	go func() {
 		for e := range fErrCh {
+			mu.Lock()
 			fErr = multierror.Append(fErr, e)
+			mu.Unlock()
 		}
 	}()
 
@@ -305,7 +315,7 @@ func Copy2Container(c *gin.Context) {
 	}
 	//defer os.RemoveAll(_tmpSaveDir)
 
-	for _, file := range files {
+	for _, f := range files {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, fErrCh chan error, file *multipart.FileHeader) {
 			defer wg.Done()
@@ -330,7 +340,7 @@ func Copy2Container(c *gin.Context) {
 			if err != nil {
 				fErrCh <- fmt.Errorf(file.Filename, err.Error())
 			}
-		}(&wg, fErrCh, file)
+		}(&wg, fErrCh, f)
 	}
 
 	wg.Wait()
@@ -373,16 +383,20 @@ func Copy2Container(c *gin.Context) {
 		for {
 			select {
 			case e := <-cErrCh:
+				mu.Lock()
 				cErr = append(cErr, e)
+				mu.Unlock()
 			case copied := <-copiedCh:
+				mu.Lock()
 				res = append(res, copied)
+				mu.Unlock()
 			case <-cStopCh:
 				return
 			}
 		}
 	}()
 
-	for _, container := range containerSlice {
+	for _, c := range containerSlice {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, container string) {
 			defer wg.Done()
@@ -406,7 +420,7 @@ func Copy2Container(c *gin.Context) {
 			}
 			logs.Info("container: ", container, " Copied")
 			copiedCh <- fmt.Sprintf("container: %s Copied", container)
-		}(&wg, container)
+		}(&wg, c)
 	}
 	wg.Wait()
 	time.Sleep(1 * time.Second)
