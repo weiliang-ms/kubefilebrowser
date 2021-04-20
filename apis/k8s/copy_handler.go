@@ -25,9 +25,9 @@ import (
 )
 
 type MultiCopyQuery struct {
-	Namespace string `json:"namespace" form:"namespace" binding:"required"`
+	Namespace string   `json:"namespace" form:"namespace" binding:"required"`
 	PodName   []string `json:"pod_name" form:"pod_name" binding:"required"`
-	DestPath  string `json:"dest_path" form:"dest_path" binding:"required"`
+	DestPath  string   `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
 // @Summary MultiCopy2Container
@@ -228,10 +228,10 @@ func MultiCopy2Container(c *gin.Context) {
 }
 
 type CopyQuery struct {
-	Namespace     string `json:"namespace" form:"namespace" binding:"required"`
-	PodName       string `json:"pod_name" form:"pod_name" binding:"required"`
+	Namespace     string   `json:"namespace" form:"namespace" binding:"required"`
+	PodName       string   `json:"pod_name" form:"pod_name" binding:"required"`
 	ContainerName []string `json:"container_name" form:"container_name"`
-	DestPath      string `json:"dest_path" form:"dest_path" binding:"required"`
+	DestPath      string   `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
 // @Summary Copy2Container
@@ -497,15 +497,33 @@ func Copy2Local(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
 		return
 	}
-	
-	var isUnix = true
-	for _, value := range pod.Spec.NodeSelector {
-		if strings.Contains(value, "windows") {
-			isUnix = false
-			break
+
+	//var isUnix = true
+	//for _, value := range pod.Spec.NodeSelector {
+	//	if strings.Contains(value, "windows") {
+	//		isUnix = false
+	//		break
+	//	}
+	//}
+	var osType = "linux"
+	var arch = "amd64"
+
+	// get pod system arch and type
+	node, err := configs.RestClient.CoreV1().Nodes().
+		Get(context.TODO(), pod.Spec.NodeName, metaV1.GetOptions{})
+	if err == nil {
+		if node.Labels["beta.kubernetes.io/os"] != "" {
+			osType = node.Labels["beta.kubernetes.io/os"]
+		} else if node.Labels["kubernetes.io/os"] != "" {
+			osType = node.Labels["kubernetes.io/os"]
+		}
+		if node.Labels["beta.kubernetes.io/arch"] != "" {
+			arch = node.Labels["beta.kubernetes.io/arch"]
+		} else if node.Labels["kubernetes.io/arch"] != "" {
+			arch = node.Labels["kubernetes.io/arch"]
 		}
 	}
-	
+
 	fileName := fmt.Sprintf("%s.%s", strconv.FormatInt(time.Now().UnixNano(), 10), query.Style)
 	c.Header("Access-Control-Expose-Headers", "Content-Disposition")
 	c.Header("Content-Type", "application/octet-stream")
@@ -524,9 +542,9 @@ func Copy2Local(c *gin.Context) {
 			return
 		}
 	case "zip":
-		zipPath := "/zip_linux_amd64"
-		if !isUnix {
-			zipPath = "/zip_windows_amd64.exe"
+		zipPath := fmt.Sprintf("/tools/kf_tools_%s_%s", osType, arch)
+		if osType == "windows" {
+			zipPath = fmt.Sprintf("/tools/kf_tools_%s_%s.exe", osType, arch)
 		}
 		err = query.copyZipTar(zipPath)
 		if err != nil {
@@ -534,8 +552,8 @@ func Copy2Local(c *gin.Context) {
 			render.SetError(utils.CODE_ERR_APP, err)
 			return
 		}
-		if isUnix {
-			_cmd := []string{"chmod", "+x", "/zip"}
+		if osType != "windows" {
+			_cmd := []string{"chmod", "+x", "/tools/kf_tools"}
 			_, err = query.exec(_cmd)
 			if err != nil {
 				logs.Error(err)
@@ -543,7 +561,7 @@ func Copy2Local(c *gin.Context) {
 				return
 			}
 		}
-		
+
 		cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
 		cp.Stdout = render.C.Writer
 		err = cp.CopyFromPod(query.DestPath, query.Style)
@@ -573,7 +591,7 @@ func (query *CopyFromPodQuery) exec(command []string) ([]byte, error) {
 	if len(stderr.Bytes()) != 0 {
 		return nil, fmt.Errorf(stderr.String())
 	}
-	
+
 	return stdout.Bytes(), nil
 }
 
@@ -581,10 +599,10 @@ func (query *CopyFromPodQuery) copyZipTar(zipPath string) error {
 	reader, writer := io.Pipe()
 	cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
 	cp.Stdin = reader
-	
+
 	go func() {
 		defer writer.Close()
-		err := utils.TarZip(zipPath, writer)
+		err := utils.TarKFTools(zipPath, writer)
 		if err != nil {
 			logs.Error(err)
 		}

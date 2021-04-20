@@ -12,7 +12,7 @@ func (c *copyer) CopyFromPod(dest []string, style string) error {
 	case "tar":
 		c.Command = append([]string{"tar", "cf", "-"}, dest...)
 	case "zip":
-		c.Command = append([]string{"/zip"}, dest...)
+		c.Command = append([]string{"/tools/kf_tools", "zip"}, dest...)
 	default:
 		c.Command = append([]string{"tar", "cf", "-"}, dest...)
 	}

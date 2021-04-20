@@ -928,6 +928,76 @@ var doc = `{
                 }
             }
         },
+        "/api/k8s/nodes": {
+            "get": {
+                "description": "节点资源列表",
+                "tags": [
+                    "Kubernetes"
+                ],
+                "summary": "ListAllNodes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "field_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "label_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "field_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "label_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "field_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "label_selector",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apis.JSONResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/apis.JSONResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/k8s/pods": {
             "get": {
                 "description": "命名空间下Pod资源列表",

@@ -35,10 +35,11 @@
           <el-table-column prop="CPU" :label="$t('cpu')"></el-table-column>
           <el-table-column prop="RAM" :label="$t('ram')"></el-table-column>
           <el-table-column prop="OS" :label="$t('os')"></el-table-column>
+          <el-table-column prop="Arch" :label="$t('arch')"></el-table-column>
           <el-table-column prop="Operate" :label="$t('operate')" width="160" align="center">
             <template slot-scope="scope">
-              <el-button class="el-icon-s-fold" v-if="scope.row.OS==='unix'" @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
               <el-button class="el-icon-s-fold" v-if="scope.row.OS==='windows'" @click.native="openTerminal(scope.row, 'cmd')">{{ $t('cmd') }}</el-button>
+              <el-button class="el-icon-s-fold" v-else @click.native="openTerminal(scope.row, 'sh')">{{ $t('sh') }}</el-button>
               <span></span>
               <el-button class="el-icon-files" @click.native="openFileBrowser(scope.row, '/')">{{ $t('file_browser') }}</el-button>
             </template>
@@ -68,6 +69,22 @@
         @close="dialogFileBrowserVisible = false">
       <div style="margin-top: -25px;">
         <el-table-header store>
+          <el-dropdown  type="info" class="avatar-container" trigger="click" style="height: 36px; float: right; margin-bottom: 10px;">
+            <div class="avatar-wrapper">
+              <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-s-tools" size="medium">
+                {{ $t('operate') }}
+                <i class="el-icon-caret-bottom" />
+              </el-button>
+            </div>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>
+                <span style="display:block;" @click="createFile(bulkPath, 'name')">{{ $t('create_file') }}</span>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <span style="display:block;" @click="createDir(bulkPath, 'name')">{{ $t('create_dir') }}</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
           <el-dropdown  type="success" class="avatar-container" trigger="click" style="height: 36px;float: right;margin-bottom: 10px;">
             <div class="avatar-wrapper">
               <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">
@@ -135,13 +152,12 @@
             :sort-orders="['ascending', 'descending']"
           >
             <template slot-scope="scope">
-              <span class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</span>
-              <span class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</span>
+              <div class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</div>
+              <div class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</div>
             </template>
           </el-table-column>
           <el-table-column
             prop="Size"
-            width="100px"
             :label="$t('size')"
             sortable
             :sort-orders="['ascending', 'descending']"
@@ -149,7 +165,6 @@
           </el-table-column>
           <el-table-column
             prop="Mode"
-            width="100px"
             :label="$t('mode')"
           >
           </el-table-column>
@@ -165,6 +180,28 @@
             :label="$t('operate')" align="center"
           >
             <template slot-scope="scope">
+              <el-dropdown type="info" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
+                <div class="avatar-wrapper">
+                  <el-button style="width: 90px; height: 30px; margin-top: 4px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-s-tools" size="medium">
+                    {{ $t('operate') }}
+                    <i class="el-icon-caret-bottom" />
+                  </el-button>
+                </div>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item v-if="!scope.row.IsDir">
+                    <span class="fake-file-btn" @click="openFile(bulkPath, 'name')">{{ $t('open') }}</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item>
+                    <span class="fake-file-btn" @click="renameFileOrDir(bulkPath, 'name')">{{ $t('rename') }}</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item>
+                    <span class="fake-file-btn" @click="removeFileOrDir(bulkPath, 'name')">{{ $t('remove') }}</span>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+              <span>
+                &nbsp;&nbsp;
+              </span>
               <el-dropdown v-if="scope.row.IsDir" type="success" class="avatar-container" trigger="click" style="height: 36px;font-size: 9px">
                 <div class="avatar-wrapper">
                   <el-button style="width: 90px; height: 30px; margin-top: 4px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-upload" size="medium">
@@ -424,6 +461,7 @@ export default {
                 CPU:cData[j].cpu,
                 RAM:cData[j].ram,
                 OS: cData[j].os,
+                Arch: cData[j].arch,
               }
               this.tableData.push(tr)
             }

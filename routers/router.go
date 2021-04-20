@@ -53,6 +53,7 @@ func Router() *gin.Engine {
 			k8sGroup.GET("/namespace", k8s.ListNamespace)
 			k8sGroup.GET("/deployment", k8s.ListNamespaceAllDeployment)
 			k8sGroup.GET("/pods", k8s.ListNamespaceAllPods)
+			k8sGroup.GET("/nodes", k8s.ListAllNodes)
 			k8sGroup.GET("/status", k8s.PodStatus)
 			k8sGroup.POST("/upload", k8s.Copy2Container)
 			k8sGroup.POST("/multi_upload", k8s.MultiCopy2Container)

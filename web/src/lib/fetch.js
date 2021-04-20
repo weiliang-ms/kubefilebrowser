@@ -1,14 +1,13 @@
 import axios from 'axios'
 import qs from 'qs'
 import Vue from 'vue'
-import i18n from '@/lang'
+import i18n from '../lang'
 import Code from './code.js'
-import http from './http.js';
+import {showFullScreenLoading, tryHideFullScreenLoading} from "./loading";
 
 let API_URL = '/api'
 let CancelToken = axios.CancelToken
 
-Vue.prototype.axios = http;
 Vue.prototype.$CancelAjaxRequet = function() {}
 Vue.prototype.$IsCancel = axios.isCancel
 
@@ -19,12 +18,15 @@ const service = axios.create({
 })
 
 service.interceptors.request.use(config => {
+    config.headers.Accept = "application/json, text/plain, */*";
+    showFullScreenLoading()
     return config
 }, error => {
     Promise.reject(error)
 })
 
 service.interceptors.response.use(response => {
+    tryHideFullScreenLoading()
     let res = response.data
     if (!res) {
         res = {
@@ -43,6 +45,7 @@ service.interceptors.response.use(response => {
     }
     return res.data
 }, error => {
+    tryHideFullScreenLoading()
     if (!axios.isCancel(error)) {
         let res = {
             code: -1,

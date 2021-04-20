@@ -62,25 +62,36 @@ func FileBrowser(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	var isUnix = true
-	for _, value := range pod.Spec.NodeSelector {
-		if strings.Contains(value, "windows") {
-			isUnix = false
-			break
+	var osType = "linux"
+	var arch = "amd64"
+
+	// get pod system arch and type
+	node, err := configs.RestClient.CoreV1().Nodes().
+		Get(context.TODO(), pod.Spec.NodeName, metaV1.GetOptions{})
+	if err == nil {
+		if node.Labels["beta.kubernetes.io/os"] != "" {
+			osType = node.Labels["beta.kubernetes.io/os"]
+		} else if node.Labels["kubernetes.io/os"] != "" {
+			osType = node.Labels["kubernetes.io/os"]
+		}
+		if node.Labels["beta.kubernetes.io/arch"] != "" {
+			arch = node.Labels["beta.kubernetes.io/arch"]
+		} else if node.Labels["kubernetes.io/arch"] != "" {
+			arch = node.Labels["kubernetes.io/arch"]
 		}
 	}
 
-	lsPath := "/ls_linux_amd64"
-	command := []string{"/ls", query.Path}
-	if !isUnix {
-		lsPath = "/ls_windows_amd64.exe"
+	lsPath := fmt.Sprintf("/tools/kf_tools_%s_%s", osType, arch)
+	command := []string{"/tools/kf_tools", "ls", query.Path}
+	if osType == "windows" {
+		lsPath = fmt.Sprintf("/tools/kf_tools_%s_%s.exe", osType, arch)
 	}
 	resByte, err := query.exec(command)
 	if err != nil {
 		logs.Error(err)
-		if strings.Contains(err.Error(), "ls") ||
+		if strings.Contains(err.Error(), "kf_tools") ||
 			err.Error() == "command terminated with exit code 126" {
-			if isUnix {
+			if osType != "windows" {
 				_, err = query.exec([]string{"sh"})
 			} else {
 				_, err = query.exec([]string{"cmd"})
@@ -98,8 +109,8 @@ func FileBrowser(c *gin.Context) {
 				render.SetError(utils.CODE_ERR_APP, err)
 				return
 			}
-			if isUnix {
-				_cmd := []string{"chmod", "+x", "/ls"}
+			if osType != "windows" {
+				_cmd := []string{"chmod", "+x", "/tools/kf_tools"}
 				_, err = query.exec(_cmd)
 				if err != nil {
 					logs.Error(err)
@@ -153,7 +164,7 @@ func (query *FileBrowserQuery) copyLsTar(lsPath string) error {
 
 	go func() {
 		defer writer.Close()
-		err := utils.TarLs(lsPath, writer)
+		err := utils.TarKFTools(lsPath, writer)
 		if err != nil {
 			logs.Error(err)
 		}

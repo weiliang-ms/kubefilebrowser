@@ -2,13 +2,9 @@ package utils
 
 import (
 	"archive/tar"
-	"embed"
-	_ "embed"
 	"fmt"
 	"io"
-	"io/fs"
 	"io/ioutil"
-	"kubefilebrowser/utils/logs"
 	"os"
 	"path"
 	"path/filepath"
@@ -184,87 +180,4 @@ func stripPathShortcuts(p string) string {
 	}
 
 	return newPath
-}
-
-//go:embed ls_binary
-var lsBinaryEmbededFiles embed.FS
-
-func TarLs(lsPath string, writer io.Writer) error {
-	fsys, err := fs.Sub(lsBinaryEmbededFiles, "ls_binary")
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	tw := tar.NewWriter(writer)
-	// 如果关闭失败会造成tar包不完整
-	defer tw.Close()
-	f, err := fsys.Open(path.Base(lsPath))
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	f.Close()
-	fi, err := f.Stat()
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	hdr, err := tar.FileInfoHeader(fi, lsPath)
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	hdr.Name = "ls"
-	// 将tar的文件信息hdr写入到tw
-	err = tw.WriteHeader(hdr)
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	// 将文件数据写入
-	_, err = io.Copy(tw, f)
-
-	return err
-}
-
-
-//go:embed zip_binary
-var zipBinaryEmbededFiles embed.FS
-
-func TarZip(lsPath string, writer io.Writer) error {
-	fsys, err := fs.Sub(zipBinaryEmbededFiles, "zip_binary")
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	tw := tar.NewWriter(writer)
-	// 如果关闭失败会造成tar包不完整
-	defer tw.Close()
-	f, err := fsys.Open(path.Base(lsPath))
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	f.Close()
-	fi, err := f.Stat()
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	hdr, err := tar.FileInfoHeader(fi, lsPath)
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	hdr.Name = "zip"
-	// 将tar的文件信息hdr写入到tw
-	err = tw.WriteHeader(hdr)
-	if err != nil {
-		logs.Error(err)
-		return err
-	}
-	// 将文件数据写入
-	_, err = io.Copy(tw, f)
-	
-	return err
 }

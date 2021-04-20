@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+.DS_Store
 
 # Test binary, built with `go test -c`
 *.test
@@ -18,5 +19,4 @@ kubefilebrowser_*
 kubefilebrowser
 .idea
 .vscode
-utils/ls_binary/*
-utils/zip_binary/*
+utils/kf_tools_binary/*

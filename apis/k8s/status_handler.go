@@ -25,10 +25,9 @@ type StatusQuery struct {
 }
 
 type ResPods struct {
-	PodName        string         `json:"pod_name"`
-	InitContainers []ResContainer `json:"init_containers,omitempty"`
-	Containers     []ResContainer `json:"containers,omitempty"`
-	Error          error          `json:"error,omitempty"`
+	PodName    string         `json:"pod_name"`
+	Containers []ResContainer `json:"containers,omitempty"`
+	Error      error          `json:"error,omitempty"`
 }
 
 type ResContainer struct {
@@ -42,6 +41,7 @@ type ResContainer struct {
 	Ram             string `json:"ram,omitempty"`
 	Version         string `json:"version,omitempty"`
 	Os              string `json:"os,omitempty"`
+	Arch            string `json:"arch,omitempty"`
 }
 
 // @Summary PodStatus
@@ -134,13 +134,25 @@ func PodStatus(c *gin.Context) {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, pod coreV1.Pod) {
 			defer wg.Done()
-			var isUnix = true
-			for _, value := range pod.Spec.NodeSelector {
-				if strings.Contains(value, "windows") {
-					isUnix = false
-					break
+			var osType = "linux"
+			var arch = "amd64"
+
+			// get pod system arch and type
+			node, err := configs.RestClient.CoreV1().Nodes().
+				Get(context.TODO(), pod.Spec.NodeName, metaV1.GetOptions{})
+			if err == nil {
+				if node.Labels["beta.kubernetes.io/os"] != "" {
+					osType = node.Labels["beta.kubernetes.io/os"]
+				} else if node.Labels["kubernetes.io/os"] != "" {
+					osType = node.Labels["kubernetes.io/os"]
+				}
+				if node.Labels["beta.kubernetes.io/arch"] != "" {
+					arch = node.Labels["beta.kubernetes.io/arch"]
+				} else if node.Labels["kubernetes.io/arch"] != "" {
+					arch = node.Labels["kubernetes.io/arch"]
 				}
 			}
+
 			var containerMetrics = make(map[string]map[string]string)
 			podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
 				Get(context.Background(), pod.Name, metaV1.GetOptions{})
@@ -157,33 +169,6 @@ func PodStatus(c *gin.Context) {
 				}
 			}
 
-			//var initContainers []ResContainer
-			//if len(pod.Spec.InitContainers) > 0 {
-			//	for _k, _v := range pod.Status.ContainerStatuses {
-			//		var state string
-			//		if _v.Ready {
-			//			state = "Running"
-			//		} else {
-			//			state = "Error"
-			//		}
-			//		_i := strings.Split(_v.Image, ":")
-			//		_container := ResContainer{
-			//			ID:              _k + 1,
-			//			Name:            _v.Name,
-			//			Image:           _v.Image,
-			//			State:           state,
-			//			Restart:         _v.RestartCount,
-			//			ImagePullPolicy: fmt.Sprint(pod.Spec.InitContainers[_k].ImagePullPolicy),
-			//			Version:         _i[len(_i)-1],
-			//		}
-			//		metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
-			//		if ok {
-			//			_container.Cpu = metrics["cpu"]
-			//			_container.Ram = metrics["mem"]
-			//		}
-			//		initContainers = append(initContainers, _container)
-			//	}
-			//}
 			var container []ResContainer
 			if len(pod.Spec.Containers) > 0 {
 				for _k, _v := range pod.Status.ContainerStatuses {
@@ -202,24 +187,20 @@ func PodStatus(c *gin.Context) {
 						Restart:         _v.RestartCount,
 						ImagePullPolicy: fmt.Sprint(pod.Spec.Containers[_k].ImagePullPolicy),
 						Version:         _i[len(_i)-1],
+						Os:              osType,
+						Arch:            arch,
 					}
 					metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
 					if ok {
 						_container.Cpu = metrics["cpu"]
 						_container.Ram = metrics["mem"]
 					}
-					if isUnix {
-						_container.Os = "unix"
-					} else {
-						_container.Os = "windows"
-					}
 					container = append(container, _container)
 				}
 			}
 			mu.Lock()
 			resPods = append(resPods, ResPods{
-				PodName: pod.Name,
-				//InitContainers: initContainers,
+				PodName:    pod.Name,
 				Containers: container,
 			})
 			mu.Unlock()

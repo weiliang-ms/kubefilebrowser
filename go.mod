@@ -16,6 +16,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.7.0
+	github.com/spf13/cobra v1.1.1 // indirect
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.0
@@ -76,4 +77,3 @@ replace k8s.io/metrics => k8s.io/metrics v0.20.2
 replace k8s.io/mount-utils => k8s.io/mount-utils v0.20.5-rc.0
 
 replace k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.20.2
-

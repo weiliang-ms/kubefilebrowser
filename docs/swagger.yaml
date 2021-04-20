@@ -608,6 +608,49 @@ paths:
       summary: ListNamespace
       tags:
       - Kubernetes
+  /api/k8s/nodes:
+    get:
+      description: 节点资源列表
+      parameters:
+      - in: query
+        name: field_selector
+        type: string
+      - in: query
+        name: label_selector
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: field_selector
+        type: string
+      - in: query
+        name: label_selector
+        type: string
+      - in: query
+        name: name
+        type: string
+      - in: query
+        name: field_selector
+        type: string
+      - in: query
+        name: label_selector
+        type: string
+      - in: query
+        name: name
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apis.JSONResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apis.JSONResult'
+      summary: ListAllNodes
+      tags:
+      - Kubernetes
   /api/k8s/pods:
     get:
       description: 命名空间下Pod资源列表
