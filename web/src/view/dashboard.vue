@@ -72,7 +72,7 @@
           <el-dropdown  type="info" class="avatar-container" trigger="click" style="height: 36px; float: right; margin-bottom: 10px;">
             <div class="avatar-wrapper">
               <el-button style="width: 90px; height: 30px; margin-right: 6px; padding-top: 7px; padding-left: 14px;" type="success" round class="el-icon-s-tools" size="medium">
-                {{ $t('operate') }}
+                {{ $t('create') }}
                 <i class="el-icon-caret-bottom" />
               </el-button>
             </div>
@@ -275,7 +275,7 @@
 import {GetStatus} from '../api/status'
 import {GetNamespace} from '../api/namespaces'
 import {GetDeployment} from "../api/deployment";
-import {FileBrowser} from "../api/filebrowser";
+import {FileBrowserList} from "../api/filebrowser";
 import {FileOrDirUpload} from "../api/upload";
 import { Terminal } from 'xterm'
 import * as fit from 'xterm/lib/addons/fit/fit'
@@ -508,7 +508,7 @@ export default {
       }
       this.path = path
       this.fileBrowserData = []
-      FileBrowser({
+      FileBrowserList({
         namespace: this.namespace,
         pods: this.pods,
         container: this.container,

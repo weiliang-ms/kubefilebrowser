@@ -14,6 +14,7 @@ export default {
     'container': '容器',
     'copy': '上传下载',
     'cpu': '处理器',
+    'create': '创建',
     'create_dir': '创建文件夹',
     'create_file': '创建文件',
     'dashboard': '仪表盘',

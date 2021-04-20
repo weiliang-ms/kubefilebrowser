@@ -8,15 +8,15 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(echoCmd)
+	rootCmd.AddCommand(touchCmd)
 }
 
-// echoCmd represents the echo command
-var echoCmd = &cobra.Command{
-	Use:     "echo",
-	Aliases: []string{"touch"},
+// touchCmd represents the touch command
+var touchCmd = &cobra.Command{
+	Use:     "touch",
+	Aliases: []string{"echo"},
 	Short:   "Get content from standard input and write it to file.",
-	Args: cobra.ExactArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		f, err := os.Create(args[0])
 		if err != nil {

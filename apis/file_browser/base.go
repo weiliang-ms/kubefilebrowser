@@ -1,15 +1,11 @@
-package k8s
+package file_browser
 
 import (
 	"bytes"
 	"context"
-	_ "embed"
-	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubefilebrowser/apis"
 	"kubefilebrowser/configs"
 	"kubefilebrowser/utils"
 	"kubefilebrowser/utils/copyer"
@@ -19,39 +15,22 @@ import (
 )
 
 type FileBrowserQuery struct {
-	Namespace string `json:"namespace" form:"namespace" binding:"required"`
-	Pods      string `json:"pods" form:"pods" binding:"required"`
-	Container string `json:"container" form:"container" binding:"required"`
-	Path      string `json:"path" form:"path" binding:"required"`
+	Namespace string    `json:"namespace" form:"namespace" binding:"required"`
+	Pods      string    `json:"pods" form:"pods" binding:"required" binding:"required"`
+	Container string    `json:"container" form:"container" binding:"required"`
+	Path      string    `json:"path" form:"path" binding:"required" binding:"required"`
+	OldPath   string    `json:"old_path,omitempty"`
+	Command   []string  `json:"-"`
+	Stdin     io.Reader `json:"-"`
 }
 
-// @Summary FileBrowser
-// @description 容器文件浏览器
-// @Tags Kubernetes
-// @Param namespace query FileBrowserQuery true "namespace"
-// @Param pods query FileBrowserQuery true "Pod名称"
-// @Param container query FileBrowserQuery true "容器名称"
-// @Param path query FileBrowserQuery true "路径"
-// @Success 200 {object} apis.JSONResult
-// @Failure 500 {object} apis.JSONResult
-// @Router /api/k8s/file_browser [get]
-func FileBrowser(c *gin.Context) {
-	render := apis.Gin{C: c}
-	// {"ls", "-lQ", "--color=never", "--full-time", "/"}
-	var query = &FileBrowserQuery{
-		Path: "/",
-	}
-	if err := c.ShouldBindQuery(query); err != nil {
-		render.SetError(utils.CODE_ERR_PARAM, err)
-		return
-	}
+func (query *FileBrowserQuery) fileBrowser() (res []byte, err error) {
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
+	_, err = configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
-		return
+		return nil, err
 	}
 
 	// check pod
@@ -59,8 +38,7 @@ func FileBrowser(c *gin.Context) {
 		Get(context.TODO(), query.Pods, metaV1.GetOptions{})
 	if err != nil {
 		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
-		return
+		return nil, err
 	}
 	var osType = "linux"
 	var arch = "amd64"
@@ -82,67 +60,64 @@ func FileBrowser(c *gin.Context) {
 	}
 
 	lsPath := fmt.Sprintf("/tools/kf_tools_%s_%s", osType, arch)
-	command := []string{"/tools/kf_tools", "ls", query.Path}
 	if osType == "windows" {
 		lsPath = fmt.Sprintf("/tools/kf_tools_%s_%s.exe", osType, arch)
 	}
-	resByte, err := query.exec(command)
+	reTryCmd := query.Command
+	res, err = query.exec()
 	if err != nil {
 		logs.Error(err)
 		if strings.Contains(err.Error(), "kf_tools") ||
 			err.Error() == "command terminated with exit code 126" {
 			if osType != "windows" {
-				_, err = query.exec([]string{"sh"})
+				query.Command = []string{"sh"}
+				_, err = query.exec()
 			} else {
-				_, err = query.exec([]string{"cmd"})
+				query.Command = []string{"cmd"}
+				_, err = query.exec()
 			}
 			if err != nil {
 				logs.ErrorWithFields(err, logs.Fields{
 					"annotation": "test container terminal shell",
 				})
-				render.SetError(utils.CODE_ERR_APP, err)
-				return
+				logs.Error(err)
+				return nil, err
 			}
 			err = query.copyLsTar(lsPath)
 			if err != nil {
 				logs.Error(err)
-				render.SetError(utils.CODE_ERR_APP, err)
-				return
+				return nil, err
 			}
 			if osType != "windows" {
 				_cmd := []string{"chmod", "+x", "/tools/kf_tools"}
-				_, err = query.exec(_cmd)
+				query.Command = _cmd
+				_, err = query.exec()
 				if err != nil {
 					logs.Error(err)
-					render.SetError(utils.CODE_ERR_APP, err)
-					return
+					return nil, err
 				}
 			}
-			resByte, err = query.exec(command)
+			query.Command = reTryCmd
+			res, err = query.exec()
 			if err != nil {
 				logs.Error(err)
-				render.SetError(utils.CODE_ERR_APP, err)
-				return
+				logs.Error(err)
+				return nil, err
 			}
 		} else {
-			render.SetError(utils.CODE_ERR_APP, err)
-			return
+			logs.Error(err)
+			return nil, err
 		}
 	}
-	var res []utils.File
-	if err := json.Unmarshal(resByte, &res); err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
-		return
-	}
-	render.SetRes(res, nil, 0)
+	return res, err
 }
 
-func (query *FileBrowserQuery) exec(command []string) ([]byte, error) {
+func (query *FileBrowserQuery) exec() ([]byte, error) {
 	var stdout, stderr bytes.Buffer
 	exec := execer.NewExec(query.Namespace, query.Pods, query.Container, configs.KuBeResConf, configs.RestClient)
-	exec.Command = command
+	exec.Command = query.Command
 	exec.Tty = false
+	exec.Stdin = query.Stdin
 	exec.Stdout = &stdout
 	exec.Stderr = &stderr
 	err := exec.Exec()
@@ -153,7 +128,6 @@ func (query *FileBrowserQuery) exec(command []string) ([]byte, error) {
 	if len(stderr.Bytes()) != 0 {
 		return nil, fmt.Errorf(stderr.String())
 	}
-
 	return stdout.Bytes(), nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"kubefilebrowser/apis"
+	"kubefilebrowser/apis/file_browser"
 	"kubefilebrowser/apis/k8s"
 	"kubefilebrowser/configs"
 	_ "kubefilebrowser/docs"
@@ -37,14 +38,6 @@ func Router() *gin.Engine {
 	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression), cors.Default())
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// 静态资源
-	//router.StaticFile("/", "static/index.html")
-	//router.Static("/static", "static")
-	//router.LoadHTMLFiles("static/index.html")
-	//router.NoRoute(func(c *gin.Context) {
-	//	c.HTML(http.StatusOK, "index.html", nil)
-	//})
-
 	apiGroup := router.Group("/api", handlersMiddleware())
 	{
 		k8sGroup := apiGroup.Group("/k8s")
@@ -60,7 +53,15 @@ func Router() *gin.Engine {
 			k8sGroup.GET("/download", k8s.Copy2Local)
 			k8sGroup.GET("/terminal", k8s.Terminal)
 			k8sGroup.GET("/exec", k8s.Exec)
-			k8sGroup.GET("/file_browser", k8s.FileBrowser)
+		}
+		FileBrowserGroup := apiGroup.Group("/file_browser")
+		{
+			FileBrowserGroup.GET("/list", file_browser.ListFile)
+			FileBrowserGroup.GET("/open", file_browser.OpenFile)
+			FileBrowserGroup.POST("/create_file", file_browser.CreateFile)
+			FileBrowserGroup.POST("/create_dir", file_browser.CreateDir)
+			FileBrowserGroup.POST("/rename", file_browser.Rename)
+			FileBrowserGroup.POST("/remove", file_browser.Remove)
 		}
 	}
 	return router
