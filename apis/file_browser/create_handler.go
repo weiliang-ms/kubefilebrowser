@@ -1,7 +1,6 @@
 package file_browser
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"kubefilebrowser/apis"
 	"kubefilebrowser/utils"
@@ -34,20 +33,18 @@ func CreateFile(c *gin.Context) {
 		return
 	}
 
-	query.Command = []string{"/tools/kf_tools", "touch", query.Path}
+	query.Command = []string{"/kf_tools", "touch", query.Path}
 	query.Stdin = c.Request.Body
 	bs, err := query.fileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	var res []utils.File
-	if err := json.Unmarshal(bs, &res); err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
+	if len(string(bs)) != 0  {
+		render.SetJson(string(bs))
 		return
 	}
-	render.SetJson(res)
+	render.SetJson("success")
 }
 
 // @Summary CreateDir
@@ -68,17 +65,15 @@ func CreateDir(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	query.Command = []string{"/tools/kf_tools", "mkdir", query.Path}
+	query.Command = []string{"/kf_tools", "mkdir", query.Path}
 	bs, err := query.fileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	var res []utils.File
-	if err := json.Unmarshal(bs, &res); err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
+	if len(string(bs)) != 0  {
+		render.SetJson(string(bs))
 		return
 	}
-	render.SetJson(res)
+	render.SetJson("success")
 }

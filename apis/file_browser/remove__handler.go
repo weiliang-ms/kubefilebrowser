@@ -1,7 +1,6 @@
 package file_browser
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"kubefilebrowser/apis"
 	"kubefilebrowser/utils"
@@ -27,17 +26,15 @@ func Remove(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	query.Command = append([]string{"/tools/kf_tools", "rm"}, strings.Split(query.Path, ",")...)
+	query.Command = append([]string{"/kf_tools", "rm"}, strings.Split(query.Path, ",")...)
 	bs, err := query.fileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	var res []utils.File
-	if err := json.Unmarshal(bs, &res); err != nil {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, err)
+	if len(string(bs)) != 0  {
+		render.SetJson(string(bs))
 		return
 	}
-	render.SetJson(res)
+	render.SetJson("success")
 }

@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import ElementUI from 'element-ui'
+import ElementUI, {MessageBox} from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import moment from 'moment'
 import App from './App.vue'
@@ -23,6 +23,10 @@ moment.locale(localeLang)
 Vue.config.debug = true;
 Vue.config.productionTip = false
 Vue.use(ElementUI)
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$confirm = MessageBox.confirm;
+Vue.prototype.$prompt = MessageBox.prompt;
 
 new Vue({
     i18n,

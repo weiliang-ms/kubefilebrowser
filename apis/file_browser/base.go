@@ -19,7 +19,7 @@ type FileBrowserQuery struct {
 	Pods      string    `json:"pods" form:"pods" binding:"required" binding:"required"`
 	Container string    `json:"container" form:"container" binding:"required"`
 	Path      string    `json:"path" form:"path" binding:"required" binding:"required"`
-	OldPath   string    `json:"old_path,omitempty"`
+	OldPath   string    `json:"old_path,omitempty" form:"old_path"`
 	Command   []string  `json:"-"`
 	Stdin     io.Reader `json:"-"`
 }
@@ -59,9 +59,9 @@ func (query *FileBrowserQuery) fileBrowser() (res []byte, err error) {
 		}
 	}
 
-	lsPath := fmt.Sprintf("/tools/kf_tools_%s_%s", osType, arch)
+	lsPath := fmt.Sprintf("/kf_tools_%s_%s", osType, arch)
 	if osType == "windows" {
-		lsPath = fmt.Sprintf("/tools/kf_tools_%s_%s.exe", osType, arch)
+		lsPath = fmt.Sprintf("/kf_tools_%s_%s.exe", osType, arch)
 	}
 	reTryCmd := query.Command
 	res, err = query.exec()
@@ -89,7 +89,7 @@ func (query *FileBrowserQuery) fileBrowser() (res []byte, err error) {
 				return nil, err
 			}
 			if osType != "windows" {
-				_cmd := []string{"chmod", "+x", "/tools/kf_tools"}
+				_cmd := []string{"chmod", "+x", "/kf_tools"}
 				query.Command = _cmd
 				_, err = query.exec()
 				if err != nil {

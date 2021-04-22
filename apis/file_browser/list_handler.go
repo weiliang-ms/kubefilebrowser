@@ -26,7 +26,7 @@ func ListFile(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-	query.Command = []string{"/tools/kf_tools", "ls", query.Path}
+	query.Command = []string{"/kf_tools", "ls", query.Path}
 	bs, err := query.fileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
