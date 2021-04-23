@@ -8,6 +8,7 @@ export default {
     'cannot_empty': '不能为空',
     'cancel': '取消',
     'cancel_all': '全部取消',
+    'change': '修改',
     'check_all': '全选',
     'contribute_to_kube_file_browser': '为 KubeFileBrowser 做贡献',
     'console': '控制台',

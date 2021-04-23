@@ -1,6 +1,10 @@
 import Vue from 'vue'
 import ElementUI, {MessageBox} from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import VueQuillEditor from 'vue-quill-editor'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
 import moment from 'moment'
 import App from './App.vue'
 import router from './router'
@@ -23,6 +27,7 @@ moment.locale(localeLang)
 Vue.config.debug = true;
 Vue.config.productionTip = false
 Vue.use(ElementUI)
+Vue.use(VueQuillEditor)
 Vue.prototype.$msgbox = MessageBox;
 Vue.prototype.$alert = MessageBox.alert;
 Vue.prototype.$confirm = MessageBox.confirm;

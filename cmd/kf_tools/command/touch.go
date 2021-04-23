@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"os"
+	"path"
 )
 
 func init() {
@@ -18,6 +19,11 @@ var touchCmd = &cobra.Command{
 	Short:   "Get content from standard input and write it to file.",
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		err := os.MkdirAll(path.Dir(args[0]), os.ModeDir)
+		if err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, err)
+			os.Exit(253)
+		}
 		f, err := os.Create(args[0])
 		if err != nil {
 			_, _ = fmt.Fprintln(os.Stderr, err)

@@ -122,8 +122,12 @@ func (query *FileBrowserQuery) exec() ([]byte, error) {
 	exec.Stderr = &stderr
 	err := exec.Exec()
 	if err != nil {
-		logs.Error(stderr.String())
-		return nil, err
+		if len(stderr.String()) != 0 {
+			logs.Error(err)
+			return nil, fmt.Errorf(stderr.String())
+		} else {
+			return nil, err
+		}
 	}
 	if len(stderr.Bytes()) != 0 {
 		return nil, fmt.Errorf(stderr.String())
