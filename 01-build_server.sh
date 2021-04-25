@@ -13,7 +13,7 @@ cd web && yarn run build && cd ../
 sed -i "s/Vue App/KubeFileBrowser/g" static/index.html
 # build server
 name="kubefilebrowser"
-version="v1.6.1"
+version="v1.7"
 # linux
 archList="386 amd64 arm arm64 ppc64le"
 # shellcheck disable=SC2181
@@ -34,7 +34,7 @@ done
 archList="386 amd64"
 for i in $archList; do
   # shellcheck disable=SC2027
-  BinaryName=BinaryName=$name"_windows-"$i"-"$version".exe"
+  BinaryName=$name"_windows-"$i"-"$version".exe"
   CGO_ENABLED=0 GOOS=windows GOARCH=$i go build -a -installsuffix cgo -ldflags "-s -w" -o "$BinaryName"
   # shellcheck disable=SC2181
   if [ "$?" != "0" ]; then
@@ -49,7 +49,7 @@ done
 archList="arm64 amd64"
 for i in $archList; do
   # shellcheck disable=SC2027
-  BinaryName=BinaryName=$name"_darwin-"$i"-"$version
+  BinaryName=$name"_darwin-"$i"-"$version
   CGO_ENABLED=0 GOOS=darwin GOARCH=$i go build -a -installsuffix cgo -ldflags "-s -w" -o "$BinaryName"
   # shellcheck disable=SC2181
   if [ "$?" != "0" ]; then

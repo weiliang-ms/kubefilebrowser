@@ -1,7 +1,6 @@
 package file_browser
 
 import (
-    "encoding/json"
     "github.com/gin-gonic/gin"
     "kubefilebrowser/apis"
     "kubefilebrowser/utils"
@@ -26,17 +25,11 @@ func OpenFile(c *gin.Context) {
         render.SetError(utils.CODE_ERR_PARAM, err)
         return
     }
-    query.Command = []string{"/tools/kf_tools", "cat", query.Path}
+    query.Command = []string{"/kf_tools", "cat", query.Path}
     bs, err := query.fileBrowser()
     if err != nil {
         render.SetError(utils.CODE_ERR_PARAM, err)
         return
     }
-    var res []utils.File
-    if err := json.Unmarshal(bs, &res); err != nil {
-        logs.Error(err)
-        render.SetError(utils.CODE_ERR_APP, err)
-        return
-    }
-    render.SetJson(res)
+    render.SetJson(string(bs))
 }

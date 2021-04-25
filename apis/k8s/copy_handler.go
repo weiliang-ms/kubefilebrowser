@@ -542,9 +542,9 @@ func Copy2Local(c *gin.Context) {
 			return
 		}
 	case "zip":
-		zipPath := fmt.Sprintf("/tools/kf_tools_%s_%s", osType, arch)
+		zipPath := fmt.Sprintf("/kf_tools_%s_%s", osType, arch)
 		if osType == "windows" {
-			zipPath = fmt.Sprintf("/tools/kf_tools_%s_%s.exe", osType, arch)
+			zipPath = fmt.Sprintf("/kf_tools_%s_%s.exe", osType, arch)
 		}
 		err = query.copyZipTar(zipPath)
 		if err != nil {
@@ -553,7 +553,7 @@ func Copy2Local(c *gin.Context) {
 			return
 		}
 		if osType != "windows" {
-			_cmd := []string{"chmod", "+x", "/tools/kf_tools"}
+			_cmd := []string{"chmod", "+x", "/kf_tools"}
 			_, err = query.exec(_cmd)
 			if err != nil {
 				logs.Error(err)
