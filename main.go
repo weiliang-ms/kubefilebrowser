@@ -75,7 +75,6 @@ const fsBase = "static"
 //feMw 使用go.16新的特性embed 到包前端编译后的代码. 替代nginx.   one binary rules them all
 func feMw(urlPrefix string) gin.HandlerFunc {
 	const indexHtml = "index.html"
-
 	return func(c *gin.Context) {
 		urlPath := strings.TrimSpace(c.Request.URL.Path)
 		if urlPath == urlPrefix {
@@ -84,7 +83,6 @@ func feMw(urlPrefix string) gin.HandlerFunc {
 		urlPath = path.Join(fsBase, urlPath)
 		f, err := staticFS.Open(urlPath)
 		if err != nil {
-			logs.Error(err)
 			//NoRoute
 			bs, err := staticFS.ReadFile(path.Join(fsBase, "/", indexHtml))
 			if err != nil {

@@ -21,14 +21,14 @@ func NewChecker(deniedIPs []string) (*Checker, error) {
 	checker := &Checker{}
 
 	for _, ipMask := range deniedIPs {
-		if ipAddr := net.ParseIP(ipMask); ipAddr != nil {
-			checker.denyIPs = append(checker.denyIPs, &ipAddr)
+		if ip := net.ParseIP(ipMask); ip != nil {
+			checker.denyIPs = append(checker.denyIPs, &ip)
 		} else {
-			_, ipAddr, err := net.ParseCIDR(ipMask)
+			_, ipNet, err := net.ParseCIDR(ipMask)
 			if err != nil {
-				return nil, fmt.Errorf("parsing CIDR IPs %s: %w", ipAddr, err)
+				return nil, fmt.Errorf("parsing CIDR IPs %s: %w", ipNet, err)
 			}
-			checker.denyIPsNet = append(checker.denyIPsNet, ipAddr)
+			checker.denyIPsNet = append(checker.denyIPsNet, ipNet)
 		}
 	}
 

@@ -22,8 +22,8 @@ var (
 
 // ssh流式处理器
 type StreamHandler struct {
-	WsConn      *utils.WsConnection
-	ResizeEvent chan remotecommand.TerminalSize
+	WsConn           *utils.WsConnection
+	ResizeEvent      chan remotecommand.TerminalSize
 }
 
 type WebTerminal struct {

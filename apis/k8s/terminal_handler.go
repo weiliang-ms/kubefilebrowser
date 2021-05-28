@@ -76,7 +76,7 @@ func Terminal(c *gin.Context) {
 		logs.Error(err)
 		return
 	}
-
+	
 	handler := &kube.StreamHandler{WsConn: wsConn, ResizeEvent: make(chan remotecommand.TerminalSize)}
 	err = executor.Stream(remotecommand.StreamOptions{
 		Stdin:             handler,
