@@ -3,7 +3,6 @@ module kubefilebrowser
 go 1.16
 
 require (
-	github.com/LeeEirc/terminalparser v0.0.0-20210105090630-135adbff588a // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4 // indirect
 	github.com/gin-contrib/cors v1.3.1

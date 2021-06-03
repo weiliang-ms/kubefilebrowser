@@ -7,14 +7,10 @@ if [ "$?" != "0" ]; then
   echo "!!!!!!Swagger documentation generate error, please check the source code!!!!!!"
   exit 1
 fi
-git add .
-git commit -m "update swagger docs"
 
 # build web
 cd web && yarn run build && cd ../
 sed -i "s/Vue App/KubeFileBrowser/g" static/index.html
-git add .
-git commit -m "update static"
 # build server
 name="kubefilebrowser"
 version="v1.7.2"
