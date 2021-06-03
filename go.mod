@@ -3,6 +3,7 @@ module kubefilebrowser
 go 1.16
 
 require (
+	github.com/LeeEirc/terminalparser v0.0.0-20210105090630-135adbff588a // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4 // indirect
 	github.com/gin-contrib/cors v1.3.1
@@ -14,6 +15,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/prometheus/client_golang v1.7.1
 	github.com/satori/go.uuid v1.2.0

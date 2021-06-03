@@ -39,7 +39,6 @@ var (
 	CoreV1Client  *coreV1.CoreV1Client
 	DynamicClient dynamic.Interface
 	MetricsClient metrics.Interface
-	version       = "1.0.0"
 	envfile       = kingpin.Flag("envfile", "Load the environment variable file").Default(".envfile").String()
 )
 
@@ -48,7 +47,7 @@ const notFoundKubeConfig = `Missing or incomplete kubernetes configuration info.
   1. Via the KUBECONFIG environment variable
   2. In your home directory as ~/.kube/config`
 
-func init() {
+func Init(version string) {
 	logs.Debug("Load variable")
 	kingpin.Version(version)
 	kingpin.Parse()

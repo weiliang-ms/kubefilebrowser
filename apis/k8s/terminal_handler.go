@@ -76,8 +76,17 @@ func Terminal(c *gin.Context) {
 		logs.Error(err)
 		return
 	}
-	
-	handler := &kube.StreamHandler{WsConn: wsConn, ResizeEvent: make(chan remotecommand.TerminalSize)}
+	handler := &kube.StreamHandler{
+		ID:          c.Request.Header.Get("X-Request-Id"),
+		WsConn:      wsConn,
+		ResizeEvent: make(chan remotecommand.TerminalSize),
+		InputCh:     make(chan []byte, 10),
+		OutputCh:    make(chan []byte, 10),
+	}
+	if query.Shell != "cmd" && query.Shell != "powershell" {
+		handler.EnableRecord = true
+		go handler.CommandRecordChan()
+	}
 	err = executor.Stream(remotecommand.StreamOptions{
 		Stdin:             handler,
 		Stdout:            handler,

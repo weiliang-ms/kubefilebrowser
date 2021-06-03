@@ -19,6 +19,15 @@ import (
 	"time"
 )
 
+var (
+	BuildAt string
+	GitHash string
+)
+
+func init() {
+	configs.Init(fmt.Sprintf("Hash: %s\nBuildDate: %s", GitHash, BuildAt))
+}
+
 // @title KubeFileBrowser Swagger
 // @version 1.0
 // @description Kubernetes FileBrowser
