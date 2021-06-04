@@ -27,7 +27,7 @@ func NewRes(data interface{}, err error, code int) *JSONResult {
 		code = 0
 	}
 	codeMsg := ""
-	if configs.Config.RunMode == "release" && code != 0 {
+	if configs.Config.RunMode == gin.ReleaseMode && code != 0 {
 		codeMsg = utils.GetMsg(code)
 	}
 

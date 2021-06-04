@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"compress/gzip"
 	"fmt"
+	"io"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"log"
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -94,4 +97,35 @@ func K8sMustParse(str string) (q resource.Quantity, err error) {
 func FileOrPathExist(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil || os.IsExist(err)
+}
+
+func EnsureDirExist(name string) error {
+	if !FileOrPathExist(name) {
+		return os.MkdirAll(name, os.ModePerm)
+	}
+	return nil
+}
+
+func GzipCompressFile(srcPath, dstPath string) error {
+	sf, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+	df, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+	writer := gzip.NewWriter(df)
+	writer.Name = filepath.Base(srcPath)
+	writer.ModTime = time.Now().UTC()
+	_, err = io.Copy(writer, sf)
+	if err != nil {
+		return err
+	}
+	if err := writer.Close(); err != nil {
+		return err
+	}
+	return nil
 }

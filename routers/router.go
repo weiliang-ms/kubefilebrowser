@@ -10,9 +10,11 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"kubefilebrowser/apis/file_browser"
 	"kubefilebrowser/apis/k8s"
+	"kubefilebrowser/configs"
 	_ "kubefilebrowser/docs"
 	"kubefilebrowser/routers/middleware"
 	"kubefilebrowser/utils/logs"
+	"net/http/pprof"
 )
 
 func Router() *gin.Engine {
@@ -60,6 +62,25 @@ func Router() *gin.Engine {
 			FileBrowserGroup.POST("/rename", file_browser.Rename)
 			FileBrowserGroup.POST("/remove", file_browser.Remove)
 		}
+	}
+	if configs.Config.RunMode != gin.DebugMode {
+		return router
+	}
+	// debug
+	debugGroup := router.Group("/debug/pprof")
+	{
+		debugGroup.GET("/", gin.WrapF(pprof.Index))
+		debugGroup.GET("/cmdline", gin.WrapF(pprof.Cmdline))
+		debugGroup.GET("/profile", gin.WrapF(pprof.Profile))
+		debugGroup.POST("/symbol", gin.WrapF(pprof.Symbol))
+		debugGroup.GET("/symbol", gin.WrapF(pprof.Symbol))
+		debugGroup.GET("/trace", gin.WrapF(pprof.Trace))
+		debugGroup.GET("/allocs", gin.WrapF(pprof.Handler("allocs").ServeHTTP))
+		debugGroup.GET("/block", gin.WrapF(pprof.Handler("block").ServeHTTP))
+		debugGroup.GET("/goroutine", gin.WrapF(pprof.Handler("goroutine").ServeHTTP))
+		debugGroup.GET("/heap", gin.WrapF(pprof.Handler("heap").ServeHTTP))
+		debugGroup.GET("/mutex", gin.WrapF(pprof.Handler("mutex").ServeHTTP))
+		debugGroup.GET("/threadcreate", gin.WrapF(pprof.Handler("threadcreate").ServeHTTP))
 	}
 	return router
 }

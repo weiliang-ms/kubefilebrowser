@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 	coreV1 "k8s.io/api/core/v1"
@@ -13,8 +14,6 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 	"kubefilebrowser/utils"
 	"kubefilebrowser/utils/logs"
-	"kubefilebrowser/utils/terminalparser"
-	"strings"
 )
 
 // Terminal operating start
@@ -27,12 +26,12 @@ var (
 
 // ssh流式处理器
 type StreamHandler struct {
-	ID           string
-	WsConn       *utils.WsConnection
-	ResizeEvent  chan remotecommand.TerminalSize
-	EnableRecord bool
-	InputCh      chan []byte
-	OutputCh     chan []byte
+	SessionID   string
+	WsConn      *utils.WsConnection
+	ResizeEvent chan remotecommand.TerminalSize
+	Shell       string
+	inputCh     chan []byte
+	outputCh    chan []byte
 }
 
 type WebTerminal struct {
@@ -65,9 +64,7 @@ func (handler *StreamHandler) Write(p []byte) (size int, err error) {
 	copyData = make([]byte, len(p))
 	copy(copyData, p)
 	size = len(p)
-	if handler.EnableRecord {
-		handler.OutputCh <- copyData
-	}
+	handler.outputCh <- copyData
 	err = handler.WsConn.WsWrite(websocket.TextMessage, []byte(base64.StdEncoding.EncodeToString(copyData)))
 	return
 }
@@ -101,71 +98,80 @@ func (handler *StreamHandler) Read(p []byte) (size int, err error) {
 	case utils.WsMsgInput: // web ssh终端输入了字符
 		// copy到p数组中
 		size = len(xtermMsg.Input)
-		if handler.EnableRecord {
-			handler.InputCh <- []byte(xtermMsg.Input)
-		}
+		handler.inputCh <- []byte(xtermMsg.Input)
 		copy(p, xtermMsg.Input)
 	}
 	return
 }
 
-type cmdStruct struct {
-	ID   string
-	Mode string
-	Msg  []byte
-	PS1  string
+func (handler *StreamHandler) Close() error {
+	close(handler.outputCh)
+	close(handler.inputCh)
+	return nil
+}
+
+type CmdStruct struct {
+	CommandID string
+	Mode      string
+	Msg       []byte
+	PS1       string
 }
 
 func (handler *StreamHandler) CommandRecordChan() {
-	var cmdlineCh = make(chan cmdStruct)
+	var cmdlineCh = make(chan CmdStruct)
+	handler.inputCh = make(chan []byte, 10)
+	handler.outputCh = make(chan []byte, 10)
 	go handler.splitCmdStream(cmdlineCh)
 	for cmdLine := range cmdlineCh {
 		switch cmdLine.Mode {
 		case "input":
-			input := terminalparser.ParseCmdInput(cmdLine.Msg)
-			input = strings.TrimPrefix(input, cmdLine.PS1)
+			input := ParseCmdInput(cmdLine.Msg)
+			//input = strings.TrimPrefix(input, cmdLine.PS1)
 			if len(input) == 0 {
 				continue
 			}
 			logs.InfoWithFields(input, logs.Fields{
 				"type": cmdLine.Mode,
-				"uuid": cmdLine.ID,
+				"uuid": cmdLine.CommandID,
 			})
 		case "output":
-			output := terminalparser.ParseCmdOutput(cmdLine.Msg)
-			output = strings.TrimSuffix(output, cmdLine.PS1)
+			output := ParseCmdOutput(cmdLine.Msg)
+			//output = strings.TrimSuffix(output, cmdLine.PS1)
 			if len(output) == 0 {
 				continue
 			}
 			logs.InfoWithFields(output, logs.Fields{
 				"type": cmdLine.Mode,
-				"uuid": cmdLine.ID,
+				"uuid": cmdLine.CommandID,
 			})
 		}
 	}
 }
 
-func (handler *StreamHandler) splitCmdStream(cmdlineCh chan cmdStruct) {
+func (handler *StreamHandler) splitCmdStream(cmdlineCh chan CmdStruct) {
 	var (
 		buf        bytes.Buffer
 		ps1        string
 		first      = true
 		isEnter    bool
 		inputState bool
-		id         = uuid.NewV4().String()
+		commandID  = uuid.NewV4().String()
 	)
+	// 回放功能
+	replayRecorder := NewReplyRecord(handler.SessionID, handler.Shell)
 	for {
 		select {
 		case <-handler.WsConn.CloseChan:
-			close(handler.OutputCh)
-			close(handler.InputCh)
+			replayRecorder.End()
 			return
-		case input := <-handler.InputCh:
+		case input := <-handler.inputCh:
 			// 用户按下回车
 			inputState = true
 			isEnter = bytes.Contains(input, charEnter)
-		case output := <-handler.OutputCh:
-			if len(output) == 0 {
+		case output := <-handler.outputCh:
+			replayRecorder.Record(output)
+			// 暂时不支持win系统的命令行收集
+			if len(output) == 0 || handler.Shell == "cmd" || handler.Shell == "powershell" {
 				continue
 			}
 			buf.Write(output)
@@ -174,23 +180,15 @@ func (handler *StreamHandler) splitCmdStream(cmdlineCh chan cmdStruct) {
 				// 处理异常情况， 上一次输出粘连本次输入
 				if bytes.Contains(buf.Bytes(), []byte(ps1)) {
 					_tmp := bytes.Split(buf.Bytes(), []byte(ps1))
-					//if len(bytes.Replace(_tmp[0], []byte("\r\n"), []byte(""), -1)) != 0 {
-					//	cmdlineCh <- cmdStruct{
-					//		ID:   id,
-					//		Mode: "output",
-					//		PS1:  ps1,
-					//		Msg:  _tmp[0],
-					//	}
-					//}
 					buf.Reset()
 					buf.Write(bytes.Join(_tmp[1:], []byte("")))
 				}
-				id = uuid.NewV4().String()
-				cmdlineCh <- cmdStruct{
-					ID:   id,
-					Mode: "input",
-					PS1:  ps1,
-					Msg:  buf.Bytes(),
+				commandID = uuid.NewV4().String()
+				cmdlineCh <- CmdStruct{
+					CommandID: commandID,
+					Mode:      "input",
+					PS1:       ps1,
+					Msg:       buf.Bytes(),
 				}
 				isEnter, inputState = false, false
 				buf.Reset()
@@ -201,7 +199,7 @@ func (handler *StreamHandler) splitCmdStream(cmdlineCh chan cmdStruct) {
 				}
 				// 只处理第一次
 				if first {
-					if s := terminalparser.GetPs1(output); s != "" {
+					if s := GetPs1(output); s != "" {
 						ps1 = s
 					}
 					first = false
@@ -209,15 +207,16 @@ func (handler *StreamHandler) splitCmdStream(cmdlineCh chan cmdStruct) {
 					continue
 				}
 				// 结算命令执行的结果
-				if bytes.Contains(output, []byte(ps1)) {
-					if s := terminalparser.GetPs1(output); s != "" {
+				if bytes.Contains(buf.Bytes(), []byte(ps1)) {
+					if s := GetPs1(output); s != "" {
 						ps1 = s
 					}
-					cmdlineCh <- cmdStruct{
-						ID:   id,
-						Mode: "output",
-						PS1:  ps1,
-						Msg:  buf.Bytes(),
+					fmt.Println(ps1)
+					cmdlineCh <- CmdStruct{
+						CommandID: commandID,
+						Mode:      "output",
+						PS1:       ps1,
+						Msg:       buf.Bytes(),
 					}
 					// 清空
 					buf.Reset()

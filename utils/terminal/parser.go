@@ -1,7 +1,8 @@
-package terminalparser
+package terminal
 
 import (
 	"kubefilebrowser/utils/logs"
+	"kubefilebrowser/utils/terminalparser"
 	"strings"
 )
 
@@ -29,9 +30,9 @@ func parse(p []byte) []string {
 			logs.Error(r)
 		}
 	}()
-	s := Screen{
-		Rows:   make([]*Row, 0, 1024),
-		Cursor: &Cursor{},
+	s := terminalparser.Screen{
+		Rows:   make([]*terminalparser.Row, 0, 1024),
+		Cursor: &terminalparser.Cursor{},
 	}
 	return s.Parse(p)
 }
