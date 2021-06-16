@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 	coreV1 "k8s.io/api/core/v1"
@@ -32,6 +31,8 @@ type StreamHandler struct {
 	Shell       string
 	inputCh     chan []byte
 	outputCh    chan []byte
+	width       uint16
+	height      uint16
 }
 
 type WebTerminal struct {
@@ -94,12 +95,20 @@ func (handler *StreamHandler) Read(p []byte) (size int, err error) {
 	switch xtermMsg.Type {
 	case utils.WsMsgResize:
 		// 放到channel里，等remotecommand executor调用我们的Next取走
+		if handler.height < xtermMsg.Rows {
+			handler.height = xtermMsg.Rows
+		}
+		if handler.width < xtermMsg.Cols {
+			handler.width = xtermMsg.Cols
+		}
 		handler.ResizeEvent <- remotecommand.TerminalSize{Width: xtermMsg.Cols, Height: xtermMsg.Rows}
 	case utils.WsMsgInput: // web ssh终端输入了字符
 		// copy到p数组中
 		size = len(xtermMsg.Input)
 		handler.inputCh <- []byte(xtermMsg.Input)
 		copy(p, xtermMsg.Input)
+	case utils.Heartbeat:
+		logs.Debug(utils.Heartbeat, "from the client")
 	}
 	return
 }
@@ -162,6 +171,8 @@ func (handler *StreamHandler) splitCmdStream(cmdlineCh chan CmdStruct) {
 	for {
 		select {
 		case <-handler.WsConn.CloseChan:
+			replayRecorder.width = handler.width
+			replayRecorder.height = handler.height
 			replayRecorder.End()
 			return
 		case input := <-handler.inputCh:
@@ -211,7 +222,6 @@ func (handler *StreamHandler) splitCmdStream(cmdlineCh chan CmdStruct) {
 					if s := GetPs1(output); s != "" {
 						ps1 = s
 					}
-					fmt.Println(ps1)
 					cmdlineCh <- CmdStruct{
 						CommandID: commandID,
 						Mode:      "output",

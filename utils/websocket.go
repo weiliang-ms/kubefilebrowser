@@ -19,6 +19,11 @@ var wsUpgrader = &websocket.Upgrader{
 	},
 }
 
+const (
+	maxReadTimeout  = 5 * time.Minute
+	maxWriteTimeOut = 5 * time.Minute
+)
+
 // websocket消息
 type WsMessage struct {
 	MessageType int
@@ -44,6 +49,7 @@ func (wsConn *WsConnection) wsReadLoop() {
 		msg     *WsMessage
 		err     error
 	)
+	_ = wsConn.wsSocket.SetReadDeadline(time.Now().Add(maxReadTimeout))
 	for {
 		// 读一个message
 		if msgType, data, err = wsConn.wsSocket.ReadMessage(); err != nil {
@@ -70,6 +76,7 @@ func (wsConn *WsConnection) wsWriteLoop() {
 		msg *WsMessage
 		err error
 	)
+	_ = wsConn.wsSocket.SetWriteDeadline(time.Now().Add(maxWriteTimeOut))
 	for {
 		select {
 		// 取一个应答
@@ -86,19 +93,12 @@ ERROR:
 	wsConn.WsClose()
 }
 
-// 检查客户端的存活
-func (wsConn *WsConnection) procLoop() {
-	// 启动一个gouroutine发送心跳
-	go func() {
-		for {
-			time.Sleep(2 * time.Second)
-			if err := wsConn.WsWrite(websocket.PingMessage, []byte("heartbeat from server")); err != nil {
-				goto ERROR
-			}
-		}
-	ERROR:
-		wsConn.WsClose()
-	}()
+func (s *WsConnection) WritePing(body []byte) error {
+	return s.wsSocket.WriteMessage(websocket.PingMessage, body)
+}
+
+func (s *WsConnection) WritePong(body []byte) error {
+	return s.wsSocket.WriteMessage(websocket.PongMessage, body)
 }
 
 /************** 并发安全 API **************/
@@ -118,8 +118,13 @@ func InitWebsocket(resp http.ResponseWriter, req *http.Request) (wsConn *WsConne
 		isClosed:  false,
 	}
 	logs.Info(wsSocket.RemoteAddr(), " WebSocket connection")
-	// 存活检测
-	go wsConn.procLoop()
+	//设置 websocket 协议层面对应的ping和pong 处理方法
+	wsSocket.SetPingHandler(func(appData string) error {
+		return wsConn.WritePing([]byte(appData))
+	})
+	wsSocket.SetPongHandler(func(appData string) error {
+		return wsConn.WritePong([]byte(appData))
+	})
 	// 读协程
 	go wsConn.wsReadLoop()
 	// 写协程
@@ -189,4 +194,5 @@ type XtermMessage struct {
 const (
 	WsMsgInput  = "input"
 	WsMsgResize = "resize"
+	Heartbeat   = "heartbeat"
 )
