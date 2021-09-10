@@ -56,7 +56,7 @@ if [ "$?" != "0" ]; then
 fi
 
 # build web
-cd web && yarn run build && cd ../
+#cd web && yarn run build && cd ../
 #sed -i "s/Vue App/KubeFileBrowser/g" static/index.html
 # shellcheck disable=SC2038
 find static -name "index.html" -type f | xargs sed -i".bak" "s/Vue App/KubeFileBrowser/g" && find static -name "*.bak" -exec rm -rf {} \;

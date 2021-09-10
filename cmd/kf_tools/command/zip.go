@@ -1,14 +1,15 @@
 package command
 
 import (
-	"archive/zip"
-	"github.com/spf13/cobra"
-	"io"
-	"kubefilebrowser/utils"
-	"kubefilebrowser/utils/ratelimit"
-	"kubefilebrowser/utils/symwalk"
-	"os"
-	"strings"
+    "archive/zip"
+    "bufio"
+    "github.com/spf13/cobra"
+    "io"
+    "kubefilebrowser/utils"
+    "kubefilebrowser/utils/ratelimit"
+    "kubefilebrowser/utils/symwalk"
+    "os"
+    "strings"
 )
 
 func init() {
@@ -23,7 +24,8 @@ var zipCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		zw := zip.NewWriter(ratelimit.Writer(os.Stdout, ratelimit.New(2000*1024))) // 限制输出 2000KB/s
 		defer zw.Close()
-
+        // 监听标准输入, 获取是否退出
+        go closeEvent()
 		for _, p := range args {
 			if !utils.FileOrPathExist(p) {
 				continue
@@ -59,4 +61,18 @@ func makeZip(inFilepath string, zw *zip.Writer) error {
 		}
 		return nil
 	})
+}
+
+func closeEvent() {
+    reader := bufio.NewReader(os.Stdin)
+    for {
+        line, _, err := reader.ReadLine()
+        if err != nil {
+            continue
+        }
+        switch string(line) {
+        case "close":
+            os.Exit(0)
+        }
+    }
 }
