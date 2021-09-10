@@ -13,7 +13,7 @@ cd web && yarn run build && cd ../
 sed -i "s/Vue App/KubeFileBrowser/g" static/index.html
 # build server
 name="kubefilebrowser"
-version="v1.7.3"
+version="v1.7.4"
 BuildAt=$(date)
 GitHash=$(git rev-parse --short HEAD)
 # linux

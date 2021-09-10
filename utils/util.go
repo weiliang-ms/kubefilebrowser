@@ -12,7 +12,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+    "runtime"
+    "strings"
 	"time"
 )
 
@@ -174,4 +175,20 @@ func InsertStringToFile(path, str string, index int) error {
 	}
 	
 	return ioutil.WriteFile(path, []byte(fileContent), 0644)
+}
+
+
+// ToLinuxPath windows 路径转Linux格式路径
+func ToLinuxPath(path string) string {
+    if runtime.GOOS == "windows" {
+        if len(strings.Split(path, "C:")) != 0 {
+            path = strings.ReplaceAll(path, "C:", "")
+        }
+        if len(strings.Split(path, "c:")) != 0 {
+            path = strings.ReplaceAll(path, "c:", "")
+        }
+        path = strings.ReplaceAll(path, `\\`, "/")
+        path = strings.ReplaceAll(path, `\`, "/")
+    }
+    return path
 }

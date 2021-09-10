@@ -1,13 +1,14 @@
 package command
 
 import (
-    "archive/zip"
-    "github.com/spf13/cobra"
-    "io"
-    "kubefilebrowser/utils"
-    "kubefilebrowser/utils/ratelimit"
-    "kubefilebrowser/utils/symwalk"
-    "os"
+	"archive/zip"
+	"github.com/spf13/cobra"
+	"io"
+	"kubefilebrowser/utils"
+	"kubefilebrowser/utils/ratelimit"
+	"kubefilebrowser/utils/symwalk"
+	"os"
+	"strings"
 )
 
 func init() {
@@ -21,9 +22,7 @@ var zipCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		zw := zip.NewWriter(ratelimit.Writer(os.Stdout, ratelimit.New(2000*1024))) // 限制输出 2000KB/s
-		defer func() {
-			_ = zw.Close()
-		}()
+		defer zw.Close()
 
 		for _, p := range args {
 			if !utils.FileOrPathExist(p) {
@@ -44,7 +43,8 @@ func makeZip(inFilepath string, zw *zip.Writer) error {
 		}
 		// 目录拉平
 		//relPath := strings.TrimPrefix(filePath, filepath.Dir(inFilepath))
-		zipFile, err := zw.Create(filePath)
+		var zwPath = utils.ToLinuxPath(filePath)
+		zipFile, err := zw.Create(strings.TrimPrefix(zwPath, "/"))
 		if err != nil {
 			return err
 		}
@@ -52,6 +52,7 @@ func makeZip(inFilepath string, zw *zip.Writer) error {
 		if err != nil {
 			return err
 		}
+		defer fsFile.Close()
 		_, err = io.Copy(zipFile, fsFile)
 		if err != nil {
 			return err
