@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/kelseyhightower/envconfig"
@@ -29,6 +30,7 @@ type Configure struct {
 	HTTPAddr    string   `envconfig:"HTTP_ADDR" default:"0.0.0.0"`
 	LogLevel    string   `envconfig:"LOG_LEVEL" default:"debug"`
 	IPWhiteList []string `envconfig:"IP_WHITE_LIST" default:"*"`
+	RootPath    string   `envconfig:"ROOT_PATH" default:""`
 }
 
 var (
@@ -39,8 +41,8 @@ var (
 	CoreV1Client  *coreV1.CoreV1Client
 	DynamicClient dynamic.Interface
 	MetricsClient metrics.Interface
-	version       = "1.0.0"
-	envfile       = kingpin.Flag("envfile", "Load the environment variable file").Default(".envfile").String()
+	envFile       = kingpin.Flag("env_file", "Load the environment variable file").Default(".envfile").String()
+	rootPath      = kingpin.Flag("root_path", "Save data directory").Default("").String()
 )
 
 const notFoundKubeConfig = `Missing or incomplete kubernetes configuration info.  Please point to an existing, complete config file:
@@ -48,19 +50,21 @@ const notFoundKubeConfig = `Missing or incomplete kubernetes configuration info.
   1. Via the KUBECONFIG environment variable
   2. In your home directory as ~/.kube/config`
 
-func init() {
+func Init(version string) {
 	logs.Debug("Load variable")
 	kingpin.Version(version)
 	kingpin.Parse()
 	// load environment variables from file.
-	_ = godotenv.Load(*envfile)
+	_ = godotenv.Load(*envFile)
 
 	// load the configuration from the environment.
 	err := envconfig.Process("", &Config)
 	if err != nil {
 		logs.Fatal(err)
 	}
-
+	if *rootPath != "" {
+		Config.RootPath = *rootPath
+	}
 	logs.SetLogLevel(Config.LogLevel)
 	logs.SetLogFormatter(&logrus.JSONFormatter{})
 	if !utils.InSliceString("*", Config.IPWhiteList) {
@@ -99,7 +103,7 @@ func init() {
 }
 
 func kConfig() (conf *rest.Config, err error) {
-	if Config.RunMode == "debug" {
+	if Config.RunMode == gin.DebugMode {
 		home, _ := homedir.Dir()
 		var kubeConfigEnv = os.Getenv("KUBECONFIG")
 		var kubeConfig = filepath.Join(home, ".kube", "config")

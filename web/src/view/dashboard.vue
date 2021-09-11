@@ -11,17 +11,18 @@
           ></el-option>
         </el-select>
       </div>
-      <div style="margin-top: 5px">
+      <div style="margin-top: 15px">
         <el-select :placeholder="$t('please_select_deployment')" style="width: 100%" filterable multiple v-model="deployment" @change="selecteddeployment">
           <el-option :label="$t('check_all')" value="all"></el-option>
           <el-option v-for="item in deployments" :label="item.label" :value="item.value" :key="item.value"></el-option>
         </el-select>
       </div>
-      <div style="margin-top: 5px">
-        <el-button @click.native="getStatus" style="float: right;margin-bottom: 10px">{{ $t('enter') }}</el-button>
+      <div style="margin-top: 15px">
+        <el-button @click.native="getStatus" style="float: right;">{{ $t('enter') }}</el-button>
       </div>
-      <div>
+      <div style="margin-top: 15px">
         <el-table
+            style="margin-top: 15px"
             class="app-table"
             size="medium"
             :data="tableData">
@@ -77,10 +78,10 @@
             </div>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>
-                <span style="display:block;" @click="openFileDialog(globalPath, 'create')">{{ $t('create_file') }}</span>
+                <span style="display:block;" @click="createFile(bulkPath, 'name')">{{ $t('create_file') }}</span>
               </el-dropdown-item>
               <el-dropdown-item>
-                <span style="display:block;" @click="createDir()">{{ $t('create_dir') }}</span>
+                <span style="display:block;" @click="createDir(bulkPath, 'name')">{{ $t('create_dir') }}</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -152,7 +153,7 @@
           >
             <template slot-scope="scope">
               <div class="el-icon-folder"  v-if="scope.row.IsDir" @click="openFileBrowser(null, scope.row.Path)">&nbsp;&nbsp;{{scope.row.Name}}</div>
-              <div class="el-icon-files"  v-else @click="openFileDialog(scope.row.Path, 'open')">{{scope.row.Name}}</div>
+              <div class="el-icon-files" v-else>&nbsp;&nbsp;{{scope.row.Name}}</div>
             </template>
           </el-table-column>
           <el-table-column
@@ -188,13 +189,13 @@
                 </div>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item v-if="!scope.row.IsDir">
-                    <span class="fake-file-btn" @click="openFileDialog(scope.row.Path, 'open')">{{ $t('change') }}</span>
+                    <span class="fake-file-btn" @click="openFile(bulkPath, 'name')">{{ $t('open') }}</span>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <span class="fake-file-btn" @click="openRenameDialog(scope.row.Name)">{{ $t('rename') }}</span>
+                    <span class="fake-file-btn" @click="renameFileOrDir(bulkPath, 'name')">{{ $t('rename') }}</span>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <span class="fake-file-btn" @click="removeFileOrDir(scope.row.Path)">{{ $t('remove') }}</span>
+                    <span class="fake-file-btn" @click="removeFileOrDir(bulkPath, 'name')">{{ $t('remove') }}</span>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -249,24 +250,6 @@
         </el-table-footer>
       </div>
     </el-dialog>
-    <el-dialog
-        :append-to-body="true"
-        :with-header="false"
-        size="70%"
-        :title="$t('file')"
-        :visible.sync="dialogFileVisible"
-        @close="dialogFileVisible = false">
-      <div style="margin-top: -45px">
-        <span style="display:block; float: left;font-size: 25px;margin-top: 20px; margin-left: 12px">{{createForPath}}</span>
-        <el-input v-if="isNewFile" v-model="createName" size="small" style="margin-top: 17px; margin-left: 6px;float: left; width: auto;" autocomplete="off" :placeholder="$t('please_input_name')"></el-input>
-        <el-button @click.native="saveFile" style="float: right;margin-right: 12px;margin-top: 12px">{{ $t('enter') }}</el-button>
-        <quill-editor
-            style="margin-top: 15px;margin-bottom: 60px;height: 450px;"
-            v-model="fileContent"
-            :options="editorOption">
-        </quill-editor>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -292,13 +275,7 @@
 import {GetStatus} from '../api/status'
 import {GetNamespace} from '../api/namespaces'
 import {GetDeployment} from "../api/deployment";
-import {
-  FileBrowserCreateDir,
-  FileBrowserCreateFile,
-  FileBrowserList,
-  FileBrowserOpen,
-  FileBrowserRemove, FileBrowserRename
-} from "../api/filebrowser";
+import {FileBrowserList} from "../api/filebrowser";
 import {FileOrDirUpload} from "../api/upload";
 import { Terminal } from 'xterm'
 import * as fit from 'xterm/lib/addons/fit/fit'
@@ -307,23 +284,6 @@ import * as webLinks from 'xterm/lib/addons/webLinks/webLinks'
 import * as search from 'xterm/lib/addons/search/search'
 import 'xterm/lib/addons/fullscreen/fullscreen.css'
 import 'xterm/dist/xterm.css'
-
-const toolbarOptions = [
-  ["bold", "italic", "underline", "strike"], // 加粗 斜体 下划线 删除线
-  ["blockquote", "code-block"], // 引用  代码块
-  [{ header: 1 }, { header: 2 }], // 1、2 级标题
-  [{ list: "ordered" }, { list: "bullet" }], // 有序、无序列表
-  [{ script: "sub" }, { script: "super" }], // 上标/下标
-  [{ indent: "-1" }, { indent: "+1" }], // 缩进
-  // [{'direction': 'rtl'}],                         // 文本方向
-  [{ size: ["small", false, "large", "huge"] }], // 字体大小
-  [{ header: [1, 2, 3, 4, 5, 6, false] }], // 标题
-  [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
-  [{ font: [] }], // 字体种类
-  [{ align: [] }], // 对齐方式
-  ["clean"], // 清除文本格式
-  ["link"] // 链接、图片
-];
 
 const defaultTheme = {
   foreground: '#ffffff', // 字体
@@ -435,7 +395,6 @@ export default {
       headerPaths: [],
       dialogTerminalVisible: false,
       dialogFileBrowserVisible: false,
-      dialogFileVisible: false,
       wsUrl: "",
       isFullScreen: false,
       searchKey: '',
@@ -443,18 +402,6 @@ export default {
       ws: null,
       term: null,
       thisV: this.visible,
-      createForPath: "",
-      createName: "",
-      fileContent: "",
-      isNewFile: false,
-      editorOption: {
-        theme: "snow", // or 'bubble'
-        modules: {
-          toolbar: {
-            container: toolbarOptions,
-          }
-        }
-      },
     }
   },
   methods: {
@@ -573,134 +520,8 @@ export default {
           this.fileBrowserData = res
         }
       }, err => {
-        this.$message.error(err.info.message)
+        alert(err.info.message)
       })
-    },
-    openFileDialog(path, type) {
-      this.fileContent = ""
-      this.dialogFileVisible=true
-      this.createForPath = path
-      this.isNewFile = true
-      if (type === "open") {
-        this.isNewFile = false
-        this.createName = ""
-        FileBrowserOpen({
-          namespace: this.namespace,
-          pods: this.pods,
-          container: this.container,
-          path: path,
-        }).then(res => {
-          console.log(res)
-          if (res !== undefined) {
-            this.fileContent = res
-          }
-        }, err => {
-          this.dialogFileVisible=false
-          this.$message.error(err.info.message)
-        })
-      }
-    },
-    saveFile() {
-      let path = this.createForPath+"/"+this.createName
-      if (this.createName === "") {
-        path = this.createForPath
-      }
-      FileBrowserCreateFile(this.fileContent, {
-        namespace: this.namespace,
-        pods: this.pods,
-        container: this.container,
-        path: path,
-      }).then(res => {
-        console.log(res)
-        if (res !== undefined) {
-          this.dialogFileVisible = false
-          this.fileContent = ""
-          this.createName = ""
-          this.$message.success(res)
-          this.openFileBrowser(null, this.path)
-        }
-      }, err => {
-        this.$message.error(err.info.message)
-      })
-    },
-    createDir() {
-      this.$prompt(this.$t('please_input_name'), this.$t('tips'), {
-        confirmButtonText: this.$t('enter'),
-        cancelButtonText: this.$t('cancel'),
-        type: 'warning'
-      }).then(({value}) => {
-        if(!value) {//对输入内容校验
-          return this.$t('please_input_name');
-        }
-        FileBrowserCreateDir({
-          namespace: this.namespace,
-          pods: this.pods,
-          container: this.container,
-          path: this.path+"/"+value,
-        }).then(res => {
-          console.log(res)
-          if (res !== undefined) {
-            this.$message.success(res)
-            this.openFileBrowser(null, this.path)
-          }
-        }, err => {
-          this.$message.error(err.info.message)
-        })
-      }).catch(() => {
-        this.$message.info(this.$t('cancel'))
-      });
-    },
-    openRenameDialog(oldName) {
-      this.$prompt(this.$t('please_input_name')+"<br>"+oldName, this.$t('tips'), {
-        confirmButtonText: this.$t('enter'),
-        cancelButtonText: this.$t('cancel'),
-        type: 'warning'
-      }).then(({value}) => {
-        if(!value) {//对输入内容校验
-          return this.$t('please_input_name');
-        }
-        FileBrowserRename({
-          namespace: this.namespace,
-          pods: this.pods,
-          container: this.container,
-          old_path: this.path+"/"+oldName,
-          path: this.path+"/"+value,
-        }).then(res => {
-          console.log(res)
-          if (res !== undefined) {
-            this.$message.success(res)
-            this.openFileBrowser(null, this.path)
-          }
-        }, err => {
-          this.$message.error(err.info.message)
-        })
-      }).catch(() => {
-        this.$message.info(this.$t('cancel'))
-      });
-    },
-    removeFileOrDir(path) {
-      this.$confirm(this.$t('tips_msg')+"<br>"+path, this.$t('tips'), {
-        confirmButtonText: this.$t('enter'),
-        cancelButtonText: this.$t('cancel'),
-        type: 'warning'
-      }).then(() => {
-        FileBrowserRemove({
-          namespace: this.namespace,
-          pods: this.pods,
-          container: this.container,
-          path: path,
-        }).then(res => {
-          console.log(res)
-          if (res !== undefined) {
-            this.$message.success(res)
-            this.openFileBrowser(null, this.path)
-          }
-        }, err => {
-          this.$message.error(err.info.message)
-        })
-      }).catch(() => {
-        this.$message.info(this.$t('cancel'))
-      });
     },
     handleSelectionChange(val) {
       this.bulkPath = []
@@ -735,7 +556,7 @@ export default {
     },
     bulkDownload(paths, style) {
       if (paths.length === 0) {
-        this.$message.error(this.$t('cannot_empty'))
+        alert(this.$t('cannot_empty'))
         return
       }
       let path = ""
@@ -783,12 +604,12 @@ export default {
         container_name:this.container,
         dest_path:path},{"Content-Type":"multipart/form-data"}).then((res) => {
         if (res.failure !== undefined) {
-          this.$message.warning(res.failure)
+          alert(res.failure)
         }else {
-          this.$message.success(res.success)
+          alert(res.success)
         }
       }, (err) => {
-        this.$message.error(err.info.message)
+        alert(err.info.message)
       })
       e.target.value = ""
     },

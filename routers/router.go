@@ -5,40 +5,39 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"kubefilebrowser/apis"
 	"kubefilebrowser/apis/file_browser"
 	"kubefilebrowser/apis/k8s"
 	"kubefilebrowser/configs"
 	_ "kubefilebrowser/docs"
-	"kubefilebrowser/utils"
-	"kubefilebrowser/utils/denyip"
+	"kubefilebrowser/routers/middleware"
 	"kubefilebrowser/utils/logs"
+	"net/http/pprof"
 )
-
-var (
-	checker *denyip.Checker
-	err     error
-)
-
-func init() {
-	if !utils.InSliceString("*", configs.Config.IPWhiteList) && len(configs.Config.IPWhiteList) != 0 {
-		checker, err = denyip.NewChecker(configs.Config.IPWhiteList)
-	}
-	if err != nil {
-		logs.Fatal(err)
-	}
-}
 
 func Router() *gin.Engine {
 	router := gin.New()
 	// 设置文件上传大小限制为8G
 	router.MaxMultipartMemory = 32 << 20
-	router.Use(logs.Logger(), gin.Recovery(), gzip.Gzip(gzip.DefaultCompression), cors.Default())
+	// middleware
+	router.Use(
+		logs.Logger(),
+		cors.Default(),
+		gin.Recovery(),
+		gzip.Gzip(gzip.DefaultCompression),
+		middleware.NoCache(),
+		middleware.DenyMiddleware(),
+		middleware.RequestIDMiddleware(),
+		middleware.PromMiddleware(nil),
+	)
+	// prometheus metrics
+	router.GET("/metrics", middleware.PromHandler(promhttp.Handler()))
+	// swagger doc
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	apiGroup := router.Group("/api", handlersMiddleware())
+	// api
+	apiGroup := router.Group("/api")
 	{
 		k8sGroup := apiGroup.Group("/k8s")
 		{
@@ -64,24 +63,24 @@ func Router() *gin.Engine {
 			FileBrowserGroup.POST("/remove", file_browser.Remove)
 		}
 	}
-	return router
-}
-
-func handlersMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		render := apis.Gin{C: c}
-		reqIPAddr := denyip.GetRemoteIP(c.Request)
-		if !utils.InSliceString("*", configs.Config.IPWhiteList) && len(configs.Config.IPWhiteList) != 0 {
-			reeIPadLenOffset := len(reqIPAddr) - 1
-			for i := reeIPadLenOffset; i >= 0; i-- {
-				err = checker.IsAuthorized(reqIPAddr[i])
-				if err != nil {
-					logs.Error(err)
-					render.SetError(utils.CODE_ERR_NO_PRIV, err)
-					return
-				}
-			}
-		}
-		c.Next()
+	if configs.Config.RunMode != gin.DebugMode {
+		return router
 	}
+	// debug
+	debugGroup := router.Group("/debug/pprof")
+	{
+		debugGroup.GET("/", gin.WrapF(pprof.Index))
+		debugGroup.GET("/cmdline", gin.WrapF(pprof.Cmdline))
+		debugGroup.GET("/profile", gin.WrapF(pprof.Profile))
+		debugGroup.POST("/symbol", gin.WrapF(pprof.Symbol))
+		debugGroup.GET("/symbol", gin.WrapF(pprof.Symbol))
+		debugGroup.GET("/trace", gin.WrapF(pprof.Trace))
+		debugGroup.GET("/allocs", gin.WrapF(pprof.Handler("allocs").ServeHTTP))
+		debugGroup.GET("/block", gin.WrapF(pprof.Handler("block").ServeHTTP))
+		debugGroup.GET("/goroutine", gin.WrapF(pprof.Handler("goroutine").ServeHTTP))
+		debugGroup.GET("/heap", gin.WrapF(pprof.Handler("heap").ServeHTTP))
+		debugGroup.GET("/mutex", gin.WrapF(pprof.Handler("mutex").ServeHTTP))
+		debugGroup.GET("/threadcreate", gin.WrapF(pprof.Handler("threadcreate").ServeHTTP))
+	}
+	return router
 }

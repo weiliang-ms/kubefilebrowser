@@ -9,7 +9,7 @@ import (
 	"kubefilebrowser/configs"
 	"kubefilebrowser/utils"
 	"kubefilebrowser/utils/logs"
-	kube "kubefilebrowser/utils/terminal"
+	"kubefilebrowser/utils/terminal"
 )
 
 type TerminalQuery struct {
@@ -63,7 +63,7 @@ func Terminal(c *gin.Context) {
 		return
 	}
 	defer wsConn.WsClose()
-	webTerminal := kube.WebTerminal{
+	webTerminal := terminal.WebTerminal{
 		K8sClient: configs.RestClient,
 		Namespace: query.Namespace,
 		PodName:   query.Pods,
@@ -76,8 +76,13 @@ func Terminal(c *gin.Context) {
 		logs.Error(err)
 		return
 	}
-
-	handler := &kube.StreamHandler{WsConn: wsConn, ResizeEvent: make(chan remotecommand.TerminalSize)}
+	handler := &terminal.StreamHandler{
+		SessionID:   c.Request.Header.Get("X-Request-Id"),
+		WsConn:      wsConn,
+		ResizeEvent: make(chan remotecommand.TerminalSize),
+		Shell:       query.Shell,
+	}
+	go handler.CommandRecordChan()
 	err = executor.Stream(remotecommand.StreamOptions{
 		Stdin:             handler,
 		Stdout:            handler,

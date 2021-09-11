@@ -54,6 +54,8 @@ func Logger() gin.HandlerFunc {
 		clientIP := c.ClientIP()
 		// 请求协议
 		proto := c.Request.Proto
+		// 请求ID
+		requestID := c.Request.Header.Get("X-Request-Id")
 		// 日志格式
 		logger.WithFields(logrus.Fields{
 			"status_code":  statusCode,
@@ -62,6 +64,7 @@ func Logger() gin.HandlerFunc {
 			"req_method":   reqMethod,
 			"req_uri":      reqUri,
 			"proto":        proto,
+			"request_id":   requestID,
 		}).Info("AccessLog")
 	}
 }

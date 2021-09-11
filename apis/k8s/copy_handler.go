@@ -561,9 +561,14 @@ func Copy2Local(c *gin.Context) {
 				return
 			}
 		}
-
+		reader, writer := io.Pipe()
 		cp := copyer.NewCopyer(query.Namespace, query.PodName, query.ContainerName, configs.KuBeResConf, configs.RestClient)
+		cp.Stdin = reader
 		cp.Stdout = render.C.Writer
+		go func() {
+			<-c.Request.Context().Done()
+			writer.Write([]byte("close\n"))
+		}()
 		err = cp.CopyFromPod(query.DestPath, query.Style)
 		if err != nil {
 			logs.Error(err)

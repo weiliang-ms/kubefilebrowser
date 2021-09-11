@@ -19,6 +19,11 @@ var wsUpgrader = &websocket.Upgrader{
 	},
 }
 
+const (
+	maxReadTimeout  = 5 * time.Minute
+	maxWriteTimeOut = 5 * time.Minute
+)
+
 // websocket消息
 type WsMessage struct {
 	MessageType int
@@ -33,7 +38,7 @@ type WsConnection struct {
 
 	mutex     sync.Mutex // 避免重复关闭管道
 	isClosed  bool
-	closeChan chan byte // 关闭通知
+	CloseChan chan byte // 关闭通知
 }
 
 // 读取协程
@@ -44,6 +49,7 @@ func (wsConn *WsConnection) wsReadLoop() {
 		msg     *WsMessage
 		err     error
 	)
+	_ = wsConn.wsSocket.SetReadDeadline(time.Now().Add(maxReadTimeout))
 	for {
 		// 读一个message
 		if msgType, data, err = wsConn.wsSocket.ReadMessage(); err != nil {
@@ -56,7 +62,7 @@ func (wsConn *WsConnection) wsReadLoop() {
 		// 放入请求队列
 		select {
 		case wsConn.inChan <- msg:
-		case <-wsConn.closeChan:
+		case <-wsConn.CloseChan:
 			goto ERROR
 		}
 	}
@@ -70,6 +76,7 @@ func (wsConn *WsConnection) wsWriteLoop() {
 		msg *WsMessage
 		err error
 	)
+	_ = wsConn.wsSocket.SetWriteDeadline(time.Now().Add(maxWriteTimeOut))
 	for {
 		select {
 		// 取一个应答
@@ -78,7 +85,7 @@ func (wsConn *WsConnection) wsWriteLoop() {
 			if err = wsConn.wsSocket.WriteMessage(msg.MessageType, msg.Data); err != nil {
 				goto ERROR
 			}
-		case <-wsConn.closeChan:
+		case <-wsConn.CloseChan:
 			goto ERROR
 		}
 	}
@@ -86,19 +93,12 @@ ERROR:
 	wsConn.WsClose()
 }
 
-// 检查客户端的存活
-func (wsConn *WsConnection) procLoop() {
-	// 启动一个gouroutine发送心跳
-	go func() {
-		for {
-			time.Sleep(2 * time.Second)
-			if err := wsConn.WsWrite(websocket.PingMessage, []byte("heartbeat from server")); err != nil {
-				goto ERROR
-			}
-		}
-	ERROR:
-		wsConn.WsClose()
-	}()
+func (s *WsConnection) WritePing(body []byte) error {
+	return s.wsSocket.WriteMessage(websocket.PingMessage, body)
+}
+
+func (s *WsConnection) WritePong(body []byte) error {
+	return s.wsSocket.WriteMessage(websocket.PongMessage, body)
 }
 
 /************** 并发安全 API **************/
@@ -114,12 +114,17 @@ func InitWebsocket(resp http.ResponseWriter, req *http.Request) (wsConn *WsConne
 		wsSocket:  wsSocket,
 		inChan:    make(chan *WsMessage, 1024),
 		outChan:   make(chan *WsMessage, 1024),
-		closeChan: make(chan byte),
+		CloseChan: make(chan byte),
 		isClosed:  false,
 	}
 	logs.Info(wsSocket.RemoteAddr(), " WebSocket connection")
-	// 存活检测
-	go wsConn.procLoop()
+	//设置 websocket 协议层面对应的ping和pong 处理方法
+	wsSocket.SetPingHandler(func(appData string) error {
+		return wsConn.WritePing([]byte(appData))
+	})
+	wsSocket.SetPongHandler(func(appData string) error {
+		return wsConn.WritePong([]byte(appData))
+	})
 	// 读协程
 	go wsConn.wsReadLoop()
 	// 写协程
@@ -132,7 +137,7 @@ func InitWebsocket(resp http.ResponseWriter, req *http.Request) (wsConn *WsConne
 func (wsConn *WsConnection) WsWrite(messageType int, data []byte) (err error) {
 	select {
 	case wsConn.outChan <- &WsMessage{messageType, data}:
-	case <-wsConn.closeChan:
+	case <-wsConn.CloseChan:
 		err = errors.New("WebSocket connection closed")
 	}
 	return
@@ -143,7 +148,7 @@ func (wsConn *WsConnection) WsRead() (msg *WsMessage, err error) {
 	select {
 	case msg = <-wsConn.inChan:
 		return
-	case <-wsConn.closeChan:
+	case <-wsConn.CloseChan:
 		err = errors.New("WebSocket connection closed")
 	}
 	return
@@ -157,7 +162,7 @@ func (wsConn *WsConnection) WsClose() {
 		wsConn.isClosed = true
 		logs.Warn(wsConn.wsSocket.RemoteAddr(), " WebSocket connection closed")
 		//<-wsConn.closeChan
-		close(wsConn.closeChan)
+		close(wsConn.CloseChan)
 	}
 	wsConn.mutex.Unlock()
 	return
@@ -189,4 +194,5 @@ type XtermMessage struct {
 const (
 	WsMsgInput  = "input"
 	WsMsgResize = "resize"
+	Heartbeat   = "heartbeat"
 )
