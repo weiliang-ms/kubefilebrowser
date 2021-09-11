@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 mkdir -p utils/kf_tools_binary
+touch utils/kf_tools_binary/placeholder
 # linux
 archList="386 amd64 arm arm64 ppc64le"
 # shellcheck disable=SC2181
@@ -47,3 +48,5 @@ for i in $archList; do
   fi
   upx --lzma utils/kf_tools_binary/"$BinaryName"
 done
+
+rm -f utils/kf_tools_binary/placeholder

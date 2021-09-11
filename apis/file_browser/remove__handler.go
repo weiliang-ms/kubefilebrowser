@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Remove
 // @Summary Remove
 // @description 容器文件浏览器 - 删除
 // @Tags FileBrowser
@@ -27,7 +28,7 @@ func Remove(c *gin.Context) {
 		return
 	}
 	query.Command = append([]string{"/kf_tools", "rm"}, strings.Split(query.Path, ",")...)
-	bs, err := query.fileBrowser()
+	bs, err := query.FileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return

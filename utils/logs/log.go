@@ -56,6 +56,8 @@ func Logger() gin.HandlerFunc {
 		proto := c.Request.Proto
 		// 请求ID
 		requestID := c.Request.Header.Get("X-Request-Id")
+		// Content-Type
+		ContentType := c.Writer.Header().Get("Content-Type")
 		// 日志格式
 		logger.WithFields(logrus.Fields{
 			"status_code":  statusCode,
@@ -65,6 +67,7 @@ func Logger() gin.HandlerFunc {
 			"req_uri":      reqUri,
 			"proto":        proto,
 			"request_id":   requestID,
+			"content_type": ContentType,
 		}).Info("AccessLog")
 	}
 }

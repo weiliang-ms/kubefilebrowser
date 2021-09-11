@@ -2,9 +2,7 @@ package k8s
 
 import (
 	"bytes"
-	"context"
 	"github.com/gin-gonic/gin"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kubefilebrowser/apis"
 	"kubefilebrowser/configs"
 	"kubefilebrowser/utils"
@@ -21,7 +19,7 @@ type ExecQuery struct {
 	Tty       bool     `json:"tty" form:"tty"`
 	Command   []string `json:"command" form:"command"`
 }
-
+// Exec
 // @Summary Container 执行器
 // @description 在pod的容器中执行
 // @Tags Kubernetes
@@ -47,19 +45,19 @@ func Exec(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
+	check := Check{
+		namespace: query.Namespace,
+		pod:       query.Pods,
+	}
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Namespace(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 
 	// check pod
-	_, err = configs.RestClient.CoreV1().Pods(query.Namespace).
-		Get(context.TODO(), query.Pods, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Pod(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
@@ -75,8 +73,7 @@ func Exec(c *gin.Context) {
 	if query.Stderr {
 		exec.Stderr = &stderr
 	}
-	err = exec.Exec()
-	if err != nil {
+	if err := exec.Exec(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return

@@ -8,6 +8,7 @@ import (
 	"kubefilebrowser/utils/logs"
 )
 
+// ListFile
 // @Summary ListFile
 // @description 容器文件浏览器 - 文件列表
 // @Tags FileBrowser
@@ -27,7 +28,7 @@ func ListFile(c *gin.Context) {
 		return
 	}
 	query.Command = []string{"/kf_tools", "ls", query.Path}
-	bs, err := query.fileBrowser()
+	bs, err := query.FileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return

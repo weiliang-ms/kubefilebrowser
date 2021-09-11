@@ -16,6 +16,7 @@ type ListNSQuery struct {
 	LabelSelector string `json:"label_selector" form:"label_selector"`
 }
 
+// ListNamespace
 // @Summary ListNamespace
 // @description 命名空间列表
 // @Tags Kubernetes

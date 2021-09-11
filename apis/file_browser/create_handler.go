@@ -11,6 +11,7 @@ type CreateBody struct {
 	Content string `json:"content,omitempty"`
 }
 
+// CreateFile
 // @Summary CreateFile
 // @description 容器文件浏览器 - 创建文件
 // @Tags FileBrowser
@@ -35,7 +36,7 @@ func CreateFile(c *gin.Context) {
 
 	query.Command = []string{"/kf_tools", "touch", query.Path}
 	query.Stdin = c.Request.Body
-	bs, err := query.fileBrowser()
+	bs, err := query.FileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
@@ -47,6 +48,7 @@ func CreateFile(c *gin.Context) {
 	render.SetJson("success")
 }
 
+// CreateDir
 // @Summary CreateDir
 // @description 容器文件浏览器 - 创建目录
 // @Tags FileBrowser
@@ -66,7 +68,7 @@ func CreateDir(c *gin.Context) {
 		return
 	}
 	query.Command = []string{"/kf_tools", "mkdir", query.Path}
-	bs, err := query.fileBrowser()
+	bs, err := query.FileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return

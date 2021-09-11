@@ -17,6 +17,7 @@ type ListDeploymentQuery struct {
 	LabelSelector string `json:"label_selector" form:"label_selector"`
 }
 
+// ListNamespaceAllDeployment
 // @Summary ListNamespaceAllDeployment
 // @description 命名空间下Deployment资源列表
 // @Tags Kubernetes

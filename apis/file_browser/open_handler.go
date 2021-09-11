@@ -7,6 +7,7 @@ import (
     "kubefilebrowser/utils/logs"
 )
 
+// OpenFile
 // @Summary OpenFile
 // @description 容器文件浏览器 - 打开文件
 // @Tags FileBrowser
@@ -26,7 +27,7 @@ func OpenFile(c *gin.Context) {
         return
     }
     query.Command = []string{"/kf_tools", "cat", query.Path}
-    bs, err := query.fileBrowser()
+    bs, err := query.FileBrowser()
     if err != nil {
         render.SetError(utils.CODE_ERR_PARAM, err)
         return

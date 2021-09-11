@@ -17,6 +17,7 @@ type ListPodsQuery struct {
 	LabelSelector string `json:"label_selector" form:"label_selector"`
 }
 
+// ListNamespaceAllPods
 // @Summary ListNamespaceAllSource
 // @description 命名空间下Pod资源列表
 // @Tags Kubernetes

@@ -24,7 +24,7 @@ type FileBrowserQuery struct {
 	Stdin     io.Reader `json:"-"`
 }
 
-func (query *FileBrowserQuery) fileBrowser() (res []byte, err error) {
+func (query *FileBrowserQuery) FileBrowser() (res []byte, err error) {
 	// check namespace
 	_, err = configs.RestClient.CoreV1().Namespaces().
 		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})

@@ -8,6 +8,8 @@ import (
 	"kubefilebrowser/utils/logs"
 )
 
+
+// Rename
 // @Summary Rename
 // @description 容器文件浏览器 - 重命名
 // @Tags FileBrowser
@@ -32,7 +34,7 @@ func Rename(c *gin.Context) {
 		return
 	}
 	query.Command = []string{"/kf_tools", "mv", query.OldPath, query.Path}
-	bs, err := query.fileBrowser()
+	bs, err := query.FileBrowser()
 	if err != nil {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return

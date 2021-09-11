@@ -44,6 +44,7 @@ type ResContainer struct {
 	Arch            string `json:"arch,omitempty"`
 }
 
+// PodStatus
 // @Summary PodStatus
 // @description 获取pod中container状态
 // @Tags Kubernetes
@@ -69,7 +70,32 @@ func PodStatus(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	var mu = sync.Mutex{}
+
+	deployments, err := query.deploymentList(c)
+	if err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_APP, err)
+		return
+	}
+
+	var resPods []ResPods
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	for _, p := range query.podsList(deployments) {
+		wg.Add(1)
+		go func(w *sync.WaitGroup, pod coreV1.Pod) {
+			defer w.Done()
+			mu.Lock()
+			defer mu.Unlock()
+			resPods = append(resPods, query.podStats(pod))
+		}(&wg, p)
+	}
+	wg.Wait()
+	render.SetJson(resPods)
+}
+
+func (query *StatusQuery) deploymentList(c *gin.Context) ([]appsV1.Deployment, error) {
+	var mu sync.Mutex
 	var wg sync.WaitGroup
 	var deployments []appsV1.Deployment
 	_d, ok := c.GetQuery("deployment")
@@ -82,10 +108,11 @@ func PodStatus(c *gin.Context) {
 					Get(context.TODO(), name, metaV1.GetOptions{})
 				if err != nil {
 					logs.Error(err)
+					return
 				}
 				mu.Lock()
+				defer mu.Unlock()
 				deployments = append(deployments, *deployment)
-				mu.Unlock()
 			}(&wg, d)
 		}
 		wg.Wait()
@@ -96,15 +123,19 @@ func PodStatus(c *gin.Context) {
 				FieldSelector: query.FieldSelector,
 			})
 		if err != nil {
-			logs.Error(err)
-			render.SetError(utils.CODE_ERR_APP, err)
-			return
+			return nil, err
 		}
 		for _, deployment := range deploymentList.Items {
 			deployments = append(deployments, deployment)
 		}
 	}
+	return deployments, nil
+}
+
+func (query *StatusQuery) podsList(deployments []appsV1.Deployment) []coreV1.Pod {
 	var podList []coreV1.Pod
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	for _, d := range deployments {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, deployment appsV1.Deployment) {
@@ -123,89 +154,80 @@ func PodStatus(c *gin.Context) {
 				return
 			}
 			mu.Lock()
+			defer mu.Unlock()
 			podList = append(podList, pods.Items...)
-			mu.Unlock()
 		}(&wg, d)
 	}
 	wg.Wait()
+	return podList
+}
 
-	var resPods []ResPods
-	for _, p := range podList {
-		wg.Add(1)
-		go func(wg *sync.WaitGroup, pod coreV1.Pod) {
-			defer wg.Done()
-			var osType = "linux"
-			var arch = "amd64"
+func (query *StatusQuery) podStats(pod coreV1.Pod) ResPods {
+	var osType = "linux"
+	var arch = "amd64"
 
-			// get pod system arch and type
-			node, err := configs.RestClient.CoreV1().Nodes().
-				Get(context.TODO(), pod.Spec.NodeName, metaV1.GetOptions{})
-			if err == nil {
-				if node.Labels["beta.kubernetes.io/os"] != "" {
-					osType = node.Labels["beta.kubernetes.io/os"]
-				} else if node.Labels["kubernetes.io/os"] != "" {
-					osType = node.Labels["kubernetes.io/os"]
-				}
-				if node.Labels["beta.kubernetes.io/arch"] != "" {
-					arch = node.Labels["beta.kubernetes.io/arch"]
-				} else if node.Labels["kubernetes.io/arch"] != "" {
-					arch = node.Labels["kubernetes.io/arch"]
-				}
-			}
-
-			var containerMetrics = make(map[string]map[string]string)
-			podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
-				Get(context.Background(), pod.Name, metaV1.GetOptions{})
-			if err != nil && !errors.IsNotFound(err) {
-				resPods = append(resPods, ResPods{Error: err})
-				return
-			}
-			for _, container := range podMetrics.Containers {
-				cpuQuantity := container.Usage.Cpu().AsDec().String()
-				memQuantity, _ := container.Usage.Memory().AsInt64()
-				containerMetrics[fmt.Sprintf("%s.%s", pod.Name, container.Name)] = map[string]string{
-					"cpu": cpuQuantity,
-					"mem": utils.FormatFileSize(memQuantity),
-				}
-			}
-
-			var container []ResContainer
-			if len(pod.Spec.Containers) > 0 {
-				for _k, _v := range pod.Status.ContainerStatuses {
-					var state string
-					if _v.Ready {
-						state = "Running"
-					} else {
-						state = "Error"
-					}
-					_i := strings.Split(_v.Image, ":")
-					_container := ResContainer{
-						ID:              _k + 1,
-						Name:            _v.Name,
-						Image:           _v.Image,
-						State:           state,
-						Restart:         _v.RestartCount,
-						ImagePullPolicy: fmt.Sprint(pod.Spec.Containers[_k].ImagePullPolicy),
-						Version:         _i[len(_i)-1],
-						Os:              osType,
-						Arch:            arch,
-					}
-					metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
-					if ok {
-						_container.Cpu = metrics["cpu"]
-						_container.Ram = metrics["mem"]
-					}
-					container = append(container, _container)
-				}
-			}
-			mu.Lock()
-			resPods = append(resPods, ResPods{
-				PodName:    pod.Name,
-				Containers: container,
-			})
-			mu.Unlock()
-		}(&wg, p)
+	// get pod system arch and type
+	node, err := configs.RestClient.CoreV1().Nodes().
+		Get(context.TODO(), pod.Spec.NodeName, metaV1.GetOptions{})
+	if err == nil {
+		if node.Labels["beta.kubernetes.io/os"] != "" {
+			osType = node.Labels["beta.kubernetes.io/os"]
+		} else if node.Labels["kubernetes.io/os"] != "" {
+			osType = node.Labels["kubernetes.io/os"]
+		}
+		if node.Labels["beta.kubernetes.io/arch"] != "" {
+			arch = node.Labels["beta.kubernetes.io/arch"]
+		} else if node.Labels["kubernetes.io/arch"] != "" {
+			arch = node.Labels["kubernetes.io/arch"]
+		}
 	}
-	wg.Wait()
-	render.SetJson(resPods)
+
+	var containerMetrics = make(map[string]map[string]string)
+	podMetrics, err := configs.MetricsClient.MetricsV1beta1().PodMetricses(pod.Namespace).
+		Get(context.Background(), pod.Name, metaV1.GetOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return ResPods{Error: err}
+	}
+	for _, container := range podMetrics.Containers {
+		cpuQuantity := container.Usage.Cpu().AsDec().String()
+		memQuantity, _ := container.Usage.Memory().AsInt64()
+		containerMetrics[fmt.Sprintf("%s.%s", pod.Name, container.Name)] = map[string]string{
+			"cpu": cpuQuantity,
+			"mem": utils.FormatFileSize(memQuantity),
+		}
+	}
+
+	var container []ResContainer
+	if len(pod.Spec.Containers) > 0 {
+		for _k, _v := range pod.Status.ContainerStatuses {
+			var state string
+			if _v.Ready {
+				state = "Running"
+			} else {
+				state = "Error"
+			}
+			_i := strings.Split(_v.Image, ":")
+			_container := ResContainer{
+				ID:              _k + 1,
+				Name:            _v.Name,
+				Image:           _v.Image,
+				State:           state,
+				Restart:         _v.RestartCount,
+				ImagePullPolicy: fmt.Sprint(pod.Spec.Containers[_k].ImagePullPolicy),
+				Version:         _i[len(_i)-1],
+				Os:              osType,
+				Arch:            arch,
+			}
+			metrics, ok := containerMetrics[fmt.Sprintf("%s.%s", pod.Name, _v.Name)]
+			if ok {
+				_container.Cpu = metrics["cpu"]
+				_container.Ram = metrics["mem"]
+			}
+			container = append(container, _container)
+		}
+	}
+	return ResPods{
+		PodName:    pod.Name,
+		Containers: container,
+	}
 }

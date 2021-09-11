@@ -1,9 +1,7 @@
 package k8s
 
 import (
-	"context"
 	"github.com/gin-gonic/gin"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/remotecommand"
 	"kubefilebrowser/apis"
 	"kubefilebrowser/configs"
@@ -19,6 +17,7 @@ type TerminalQuery struct {
 	Shell     string `json:"shell" form:"shell"`
 }
 
+// Terminal
 // @Summary Container terminal
 // @description pod 中容器的终端
 // @Tags Kubernetes
@@ -38,20 +37,19 @@ func Terminal(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
-
+	check := Check{
+		namespace: query.Namespace,
+		pod:       query.Pods,
+	}
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Namespace(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 
 	// check pod
-	_, err = configs.RestClient.CoreV1().Pods(query.Namespace).
-		Get(context.TODO(), query.Pods, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Pod(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return

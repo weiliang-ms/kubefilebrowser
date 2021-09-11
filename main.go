@@ -40,7 +40,7 @@ func main() {
 	r.Use(feMw("/"))
 	srv := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", configs.Config.HTTPAddr, configs.Config.HTTPPort),
-		// Good practice to set timeouts to avoid Slowloris attacks.
+		// Good practice to set timeouts to avoid Solaris attacks.
 		WriteTimeout: time.Second * 300,
 		ReadTimeout:  time.Second * 300,
 		IdleTimeout:  time.Second * 300,
@@ -99,7 +99,7 @@ func feMw(urlPrefix string) gin.HandlerFunc {
 				return
 			}
 			c.Status(200)
-			c.Writer.Write(bs)
+			_,_ = c.Writer.Write(bs)
 			c.Abort()
 			return
 		}
@@ -123,7 +123,7 @@ func feMw(urlPrefix string) gin.HandlerFunc {
 				return
 			}
 			c.Status(200)
-			c.Writer.Write(bs)
+			_,_ = c.Writer.Write(bs)
 			c.Abort()
 		}
 	}

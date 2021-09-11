@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/hashicorp/go-multierror"
 	"io"
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +14,6 @@ import (
 	"kubefilebrowser/utils/copyer"
 	"kubefilebrowser/utils/execer"
 	"kubefilebrowser/utils/logs"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -30,6 +28,7 @@ type MultiCopyQuery struct {
 	DestPath  string   `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
+// MultiCopy2Container
 // @Summary MultiCopy2Container
 // @description 上传到容器
 // @Tags Kubernetes
@@ -49,95 +48,31 @@ func MultiCopy2Container(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
+	check := Check{
+		namespace: query.Namespace,
+	}
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Namespace(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
+
 	for _, podName := range query.PodName {
 		// check pod
-		pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
-			Get(context.TODO(), podName, metaV1.GetOptions{})
+		check.pod = podName
+		_, err := check.Pod()
 		if err != nil {
 			logs.Error(err)
 			render.SetError(utils.CODE_ERR_APP, err)
 			return
 		}
-		if pod.Status.Phase == coreV1.PodSucceeded || pod.Status.Phase == coreV1.PodFailed {
-			logs.Error(err)
-			render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
-			return
-		}
 	}
-
-	form, err := c.MultipartForm()
-	if err != nil {
-		render.SetError(utils.CODE_ERR_MSG, err)
-		return
-	}
-	files := form.File["files"]
-	if len(files) == 0 {
-		logs.Error("files is null")
-		render.SetError(utils.CODE_ERR_MSG, fmt.Errorf("files is null"))
-		return
-	}
-
 	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
-	var wg sync.WaitGroup
-	var mu = sync.Mutex{}
-	var fErrCh = make(chan error, len(files))
-	var fErr error
-	go func() {
-		for e := range fErrCh {
-			mu.Lock()
-			fErr = multierror.Append(fErr, e)
-			mu.Unlock()
-		}
-	}()
-
-	// create _tmpSaveDir
-	if !utils.FileOrPathExist(_tmpSaveDir) {
-		err := os.MkdirAll(_tmpSaveDir, os.ModePerm)
-		if err != nil {
-			logs.Fatal("无法创建文件夹", err)
-			render.SetError(utils.CODE_ERR_MSG, err)
-			return
-		}
-	}
 	defer os.RemoveAll(_tmpSaveDir)
-
-	for _, f := range files {
-		wg.Add(1)
-		go func(wg *sync.WaitGroup, fErrCh chan error, file *multipart.FileHeader) {
-			defer wg.Done()
-			// Default save path
-			_tp := _tmpSaveDir
-			uploadFileName := filepath.Base(file.Filename)
-			uploadFPath := filepath.Dir(file.Filename)
-			// Process folder upload
-			if uploadFPath != "." {
-				_tp = filepath.Join(_tmpSaveDir, uploadFPath)
-				if !utils.FileOrPathExist(_tp) {
-					os.MkdirAll(_tp, os.ModePerm)
-				}
-			}
-
-			// save file to local in _tp
-			err = c.SaveUploadedFile(file, filepath.Join(_tp, uploadFileName))
-			if err != nil {
-				fErrCh <- fmt.Errorf(file.Filename, err.Error())
-			}
-		}(&wg, fErrCh, f)
-	}
-	wg.Wait()
-
-	time.Sleep(1 * time.Second)
-	if fErr != nil {
-		logs.Error(fErr.Error())
-		render.SetError(utils.CODE_ERR_MSG, fErr)
+	if err := writeFiles(c, _tmpSaveDir); err != nil {
+		logs.Error(err)
+		render.SetError(utils.CODE_ERR_MSG, err)
 		return
 	}
 
@@ -147,69 +82,42 @@ func MultiCopy2Container(c *gin.Context) {
 	}
 
 	var res []string
-	var cStopCh = make(chan struct{}, 1)
-	var cErrCh = make(chan error, 1024)
-	var copiedCh = make(chan string, 1024)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var err error
 	var cErr []error
-	go func() {
-		for {
-			select {
-			case e := <-cErrCh:
-				mu.Lock()
-				cErr = append(cErr, e)
-				mu.Unlock()
-			case copied := <-copiedCh:
-				mu.Lock()
-				res = append(res, copied)
-				mu.Unlock()
-			case <-cStopCh:
-				return
-			}
-		}
-	}()
-
 	for _, podName := range query.PodName {
 		var containerSlice []string
-		res, err := configs.RestClient.CoreV1().Pods(query.Namespace).
+		var pod *coreV1.Pod
+		pod, err = configs.RestClient.CoreV1().Pods(query.Namespace).
 			Get(context.TODO(), podName, metaV1.GetOptions{})
 		if err != nil {
 			logs.Error(err)
 			render.SetError(utils.CODE_ERR_APP, err)
 			return
 		}
-		for _, container := range res.Spec.Containers {
+		for _, container := range pod.Spec.Containers {
 			containerSlice = append(containerSlice, container.Name)
 		}
 
-		for _, c := range containerSlice {
+		for _, container := range containerSlice {
 			wg.Add(1)
-			go func(wg *sync.WaitGroup, cErrCh chan error, podName, container string) {
+			go func(wg *sync.WaitGroup, podName, container string) {
 				defer wg.Done()
-				reader, writer := io.Pipe()
-				cp := copyer.NewCopyer(query.Namespace, podName, container, configs.KuBeResConf, configs.RestClient)
-				cp.Stdin = reader
-
-				go func() {
-					defer writer.Close()
-					err := utils.MakeTar(_tmpSaveDir, query.DestPath, writer)
-					if err != nil {
-						cErrCh <- fmt.Errorf("%s %v", container, err)
-					}
-				}()
-
-				err := cp.CopyToPod(query.DestPath)
+				err = copyToPod(query.Namespace, podName, container, _tmpSaveDir, query.DestPath)
 				if err != nil {
-					logs.Error(fmt.Sprintf("pod: %s container: %s %v", podName, container, err))
-					cErrCh <- fmt.Errorf("pod: %s container: %s %v", podName, container, err)
+					mu.Lock()
+					cErr = append(cErr, err)
+					mu.Unlock()
 					return
 				}
-				logs.Info(fmt.Sprintf("pod: %s container: %s Copied", podName, container))
-				copiedCh <- fmt.Sprintf("pod: %s container: %s Copied", podName, container)
-			}(&wg, cErrCh, podName, c)
+				mu.Lock()
+				res = append(res, fmt.Sprintf("pod %s container %s copied", query.PodName, container))
+				mu.Unlock()
+			}(&wg, podName, container)
 		}
 	}
 	wg.Wait()
-	time.Sleep(1 * time.Second)
 
 	if cErr != nil {
 		var _se []string
@@ -234,6 +142,7 @@ type CopyQuery struct {
 	DestPath      string   `json:"dest_path" form:"dest_path" binding:"required"`
 }
 
+// Copy2Container
 // @Summary Copy2Container
 // @description 上传到容器
 // @Tags Kubernetes
@@ -254,104 +163,31 @@ func Copy2Container(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_PARAM, err)
 		return
 	}
+	check := Check{
+		namespace: query.Namespace,
+		pod:       query.PodName,
+	}
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Namespace(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 
 	// check pod
-	pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
-		Get(context.TODO(), query.PodName, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Pod(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
-	if pod.Status.Phase == coreV1.PodSucceeded || pod.Status.Phase == coreV1.PodFailed {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
-		return
-	}
 
-	form, err := c.MultipartForm()
-	if err != nil {
+	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
+	defer os.RemoveAll(_tmpSaveDir)
+	if err := writeFiles(c, _tmpSaveDir); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_MSG, err)
 		return
 	}
-	files := form.File["files"]
-	if len(files) == 0 {
-		logs.Error("files is null")
-		render.SetError(utils.CODE_ERR_MSG, fmt.Errorf("files is null"))
-		return
-	}
-
-	var _tmpSaveDir = filepath.Join(configs.TmpPath, strconv.FormatInt(time.Now().UnixNano(), 10))
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var fErrCh = make(chan error, len(files))
-	defer close(fErrCh)
-	var fErr error
-	go func() {
-		for e := range fErrCh {
-			mu.Lock()
-			fErr = multierror.Append(fErr, e)
-			mu.Unlock()
-		}
-	}()
-
-	// create _tmpSaveDir
-	if !utils.FileOrPathExist(_tmpSaveDir) {
-		err := os.MkdirAll(_tmpSaveDir, os.ModePerm)
-		if err != nil {
-			logs.Fatal("无法创建文件夹", err)
-			render.SetError(utils.CODE_ERR_MSG, err)
-			return
-		}
-	}
-	//defer os.RemoveAll(_tmpSaveDir)
-
-	for _, f := range files {
-		wg.Add(1)
-		go func(wg *sync.WaitGroup, fErrCh chan error, file *multipart.FileHeader) {
-			defer wg.Done()
-			// Default save path
-			logs.Debug(file.Filename)
-			_tp := _tmpSaveDir
-			uploadFilname := filepath.Base(file.Filename)
-			uploadFPath := filepath.Dir(file.Filename)
-			// Process folder upload
-			if uploadFPath != "." {
-				_tp = filepath.Join(_tmpSaveDir, uploadFPath)
-				if !utils.FileOrPathExist(_tp) {
-					err = os.MkdirAll(_tp, os.ModePerm)
-					if err != nil {
-						logs.Error(err)
-					}
-				}
-			}
-
-			// save file to local in _tp
-			err = c.SaveUploadedFile(file, filepath.Join(_tp, uploadFilname))
-			if err != nil {
-				fErrCh <- fmt.Errorf(file.Filename, err.Error())
-			}
-		}(&wg, fErrCh, f)
-	}
-
-	wg.Wait()
-	time.Sleep(1 * time.Second)
-
-	if fErr != nil {
-		logs.Error(fErr.Error())
-		render.SetError(utils.CODE_ERR_MSG, fErr)
-		return
-	}
-
 	// strip trailing slash (if any)
 	if query.DestPath != "/" && strings.HasSuffix(string(query.DestPath[len(query.DestPath)-1]), "/") {
 		query.DestPath = query.DestPath[:len(query.DestPath)-1]
@@ -373,57 +209,28 @@ func Copy2Container(c *gin.Context) {
 		}
 	}
 
-	var cErrCh = make(chan error)
-	var copiedCh = make(chan string)
-	var cStopCh = make(chan struct{}, 1)
+
 	var cErr []error
 	var res []string
-
-	go func() {
-		for {
-			select {
-			case e := <-cErrCh:
-				mu.Lock()
-				cErr = append(cErr, e)
-				mu.Unlock()
-			case copied := <-copiedCh:
-				mu.Lock()
-				res = append(res, copied)
-				mu.Unlock()
-			case <-cStopCh:
-				return
-			}
-		}
-	}()
-
-	for _, c := range containerSlice {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	for _, container := range containerSlice {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, container string) {
 			defer wg.Done()
-			reader, writer := io.Pipe()
-			cp := copyer.NewCopyer(query.Namespace, query.PodName, container, configs.KuBeResConf, configs.RestClient)
-			cp.Stdin = reader
-
-			go func() {
-				defer writer.Close()
-				err := utils.MakeTar(_tmpSaveDir, query.DestPath, writer)
-				if err != nil {
-					cErrCh <- fmt.Errorf("%s %v", container, err)
-				}
-			}()
-
-			err := cp.CopyToPod(query.DestPath)
+			err := copyToPod(query.Namespace, query.PodName, container, _tmpSaveDir, query.DestPath)
 			if err != nil {
-				logs.Error("container: ", container, err)
-				cErrCh <- fmt.Errorf("container: %s %v", container, err)
+				mu.Lock()
+				cErr = append(cErr, err)
+				mu.Unlock()
 				return
 			}
-			logs.Info("container: ", container, " Copied")
-			copiedCh <- fmt.Sprintf("container: %s Copied", container)
-		}(&wg, c)
+			mu.Lock()
+			res = append(res, fmt.Sprintf("pod %s container %s copied", query.PodName, container))
+			mu.Unlock()
+		}(&wg, container)
 	}
 	wg.Wait()
-	time.Sleep(1 * time.Second)
 	if cErr != nil {
 		var _se []string
 		for _, e := range cErr {
@@ -440,6 +247,22 @@ func Copy2Container(c *gin.Context) {
 	})
 }
 
+func copyToPod(namespace, pod, container, _tmpSaveDir, destPath string) error {
+	reader, writer := io.Pipe()
+	cp := copyer.NewCopyer(namespace, pod, container, configs.KuBeResConf, configs.RestClient)
+	cp.Stdin = reader
+
+	go func() {
+		defer writer.Close()
+		err := utils.MakeTar(_tmpSaveDir, destPath, writer)
+		if err != nil {
+			logs.Error(err)
+		}
+	}()
+
+	return cp.CopyToPod(destPath)
+}
+
 type CopyFromPodQuery struct {
 	Namespace     string   `json:"namespace" form:"namespace" binding:"required"`
 	PodName       string   `json:"pod_name" form:"pod_name" binding:"required"`
@@ -448,6 +271,7 @@ type CopyFromPodQuery struct {
 	Style         string   `json:"style" form:"style"`
 }
 
+// Copy2Local
 // @Summary Copy2Local
 // @description 从容器下载到本地
 // @Tags Kubernetes
@@ -474,27 +298,23 @@ func Copy2Local(c *gin.Context) {
 		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("ContainerName cannot be empty"))
 		return
 	}
+
+	check := Check{
+		namespace: query.Namespace,
+		pod:       query.PodName,
+	}
 	// check namespace
-	_, err := configs.RestClient.CoreV1().Namespaces().
-		Get(context.TODO(), query.Namespace, metaV1.GetOptions{})
-	if err != nil {
+	if _, err := check.Namespace(); err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
 		return
 	}
 
 	// check pod
-	pod, err := configs.RestClient.CoreV1().Pods(query.Namespace).
-		Get(context.TODO(), query.PodName, metaV1.GetOptions{})
+	pod, err := check.Pod()
 	if err != nil {
 		logs.Error(err)
 		render.SetError(utils.CODE_ERR_APP, err)
-		return
-	}
-
-	if pod.Status.Phase == coreV1.PodSucceeded || pod.Status.Phase == coreV1.PodFailed {
-		logs.Error(err)
-		render.SetError(utils.CODE_ERR_APP, fmt.Errorf("cannot exec into a container in a completed pod; current phase is %s", pod.Status.Phase))
 		return
 	}
 
@@ -567,7 +387,7 @@ func Copy2Local(c *gin.Context) {
 		cp.Stdout = render.C.Writer
 		go func() {
 			<-c.Request.Context().Done()
-			writer.Write([]byte("close\n"))
+			_, _ = writer.Write([]byte("close\n"))
 		}()
 		err = cp.CopyFromPod(query.DestPath, query.Style)
 		if err != nil {

@@ -16,6 +16,7 @@ type ListNodesQuery struct {
 	LabelSelector string `json:"label_selector" form:"label_selector"`
 }
 
+// ListAllNodes
 // @Summary ListAllNodes
 // @description 节点资源列表
 // @Tags Kubernetes
