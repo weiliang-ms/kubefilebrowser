@@ -20,7 +20,7 @@ jobs:
       - name: build kf_tools
         run: sh 00-build_lib.sh
       - name: Build Image
-        run: docker build --network host --rm --build-arg APP_ROOT=/go/src/kubefilebrowser -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile .
+        run: docker build --build-arg APP_ROOT=/go/src/kubefilebrowser -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile .
       - name: Login to registry
         run: docker login --username=${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }} ${{ secrets.DOCKER_REGISTRY }}
       - name: Push Image
