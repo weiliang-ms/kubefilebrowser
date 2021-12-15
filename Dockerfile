@@ -1,6 +1,6 @@
 #docker build --network host --rm --build-arg APP_ROOT=/go/src/kubefilebrowser -t kubefilebrowser:latest -f Dockerfile .
 #0 ----------------------------
-FROM golang:1.15.3
+FROM golang:1.16
 ARG  APP_ROOT
 WORKDIR ${APP_ROOT}
 COPY ./ ${APP_ROOT}
