@@ -12,9 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install Go
+        id: install_golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: "v1.16.2"
       - name: build kf_tools
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-s -w" -o kf_tools_binary
-          upx --lzma kf_tools_binary
         working-directory: cmd/kf_tools
       - name: Build Image
         run: docker build --network host --rm --build-arg APP_ROOT=/go/src/kubefilebrowser -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile .
