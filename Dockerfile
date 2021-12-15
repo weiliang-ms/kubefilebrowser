@@ -27,6 +27,7 @@ FROM alpine:latest
 ARG APP_ROOT
 WORKDIR /app
 #COPY --from=0 ${APP_ROOT}/savior .
+COPY --from=0 ${APP_ROOT}/main .
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
   && apk add --no-cache openssh jq curl busybox-extras \
   && rm -rf /var/cache/apk/*
